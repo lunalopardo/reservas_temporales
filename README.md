@@ -9,6 +9,7 @@
 
 * **Luna Lopardo** - *luna.lopardo@gmail.com* - [@lunalopardo](https://github.com/lunalopardo) - Discord: `slotherin`
 * **Myriam Alvarez** - *myriamalvarez1006@gmail.com* - [@myriamalvarez](https://github.com/myriamalvarez) - Discord: `myriamalvarez1006`
+* **Leandra Campos** - *camposleandra149@gmail.com* - [@Leandra25](https://github.com/Leandra25) - Discord: `Leandra 7827`
 
 ---
 
