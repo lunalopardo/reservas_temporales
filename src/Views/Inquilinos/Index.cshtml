@@ -1,0 +1,44 @@
+@model IEnumerable<ReservasTemporales.Models.Inquilino>
+
+@{
+    ViewData["Title"] = "Listado de Inquilinos";
+}
+
+<link rel="stylesheet" href="~/css/formularios.css" />
+
+<div class="contenedor-principal">
+    <div class="encabezado-tabla">
+        <h2>Listado de Inquilinos</h2>
+        <a asp-action="Create" class="boton-nuevo">+ Nuevo Inquilino</a>
+    </div>
+
+    <table class="tabla-datos">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>DNI</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Nombre</td>
+                    <td>@item.Apellido</td>
+                    <td>@item.Dni</td>
+                    <td>@item.Telefono</td>
+                    <td>@item.Email</td>
+                    <td class="columna-acciones">
+                        <a asp-action="Details" asp-route-id="@item.IdInquilino" class="enlace-accion">Detalles</a> |
+                        <a asp-action="Edit" asp-route-id="@item.IdInquilino" class="enlace-accion">Editar</a> |
+                        <a asp-action="Delete" asp-route-id="@item.IdInquilino" class="enlace-accion enlace-eliminar">Borrar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

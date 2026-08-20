@@ -8,7 +8,7 @@ namespace ReservasTemporales.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<Propietario> Propietarios { get; set; }
-        //public DbSet<Inquilino> Inquilinos { get; set; }
+        public DbSet<Inquilino> Inquilinos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,10 +22,11 @@ namespace ReservasTemporales.Data
             );
 
             // Carga inicial de Inquilinos
-            /* modelBuilder.Entity<Inquilino>().HasData(
-                new Inquilino { Id = 1, Nombre = "Federico", Apellido = "Morales", Dni = "38123456", Email = "fede.morales@gmail.com", Telefono = "1199887766", Activo = true },
-                new Inquilino { Id = 2, Nombre = "Gabriela", Apellido = "Sosa", Dni = "40987654", Email = "gaby.sosa@live.com", Telefono = "1188776655", Activo = true }
-            );*/
+             modelBuilder.Entity<Inquilino>().HasData(
+                new Inquilino { IdInquilino = 1, Nombre = "Federico", Apellido = "Morales", Dni = "38123456", Email = "fede.morales@gmail.com", Telefono = "1199887766", Activo = true },
+                new Inquilino { IdInquilino = 2, Nombre = "Gabriela", Apellido = "Sosa", Dni = "40987654", Email = "gaby.sosa@live.com", Telefono = "1188776655", Activo = true },
+                new Inquilino { IdInquilino = 3, Nombre = "Lucía", Apellido = "Sosa", Dni = "45975677", Email = "lucia.sosa@gmail.com", Telefono = "1198784675", Activo = true }
+            );
         }
     }
 }

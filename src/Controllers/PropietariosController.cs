@@ -16,11 +16,11 @@ namespace ReservasTemporales.Controllers
 
         // GET: Propietarios
         public async Task<IActionResult> Index()
-{
-    return View(await _context.Propietarios
-        .Where(p => p.Activo)
-        .ToListAsync());
-}
+        {
+            return View(await _context.Propietarios
+                .Where(p => p.Activo)
+                .ToListAsync());
+        }
 
         // GET: Propietarios/Details/5
         public async Task<IActionResult> Details(int? id)

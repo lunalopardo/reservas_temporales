@@ -1,0 +1,31 @@
+@model ReservasTemporales.Models.Inquilino
+
+@{
+    ViewData["Title"] = "Eliminar inquilino";
+}
+
+<link rel="stylesheet" href="~/css/formularios.css" />
+
+<h2>Eliminar inquilino</h2>
+
+<div class="formulario-contenedor">
+    <p>¿Estás seguro de que querés dar de baja a este inquilino?</p>
+
+    <div class="detalle-datos">
+        <p><strong>Nombre:</strong> @Model.Nombre @Model.Apellido</p>
+        <p><strong>DNI:</strong> @Model.Dni</p>
+        <p><strong>Teléfono:</strong> @Model.Telefono</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="IdInquilino" />
+
+        <div class="acciones">
+            <button type="submit" class="boton-eliminar">Confirmar baja</button>
+            <a asp-action="Index" class="boton-volver">Cancelar</a>
+        </div>
+    </form>
+</div>
