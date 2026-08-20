@@ -4,39 +4,26 @@
     ViewData["Title"] = "Detalle del propietario";
 }
 
-<h1>Detalle del propietario</h1>
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 
-<div>
-    <hr />
+<div class="tarjeta-detalle">
+    <h2 class="titulo-vista">Detalle del propietario</h2>
 
-    <dl>
-        <dt>Código</dt>
-        <dd>@Model.IdPropietario</dd>
+    <div class="tarjeta-cabecera">
+        <h3>@Model.Nombre @Model.Apellido</h3>
+    </div>
+    
+    <div class="tarjeta-cuerpo">
+        <p><strong>Código:</strong> @Model.IdPropietario</p>
+        <p><strong>DNI:</strong> @Model.Dni</p>
+        <p><strong>Teléfono:</strong> @Model.Telefono</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Estado:</strong> @(Model.Activo ? "Activo" : "Inactivo")</p>
+    </div>
 
-        <dt>Nombre</dt>
-        <dd>@Model.Nombre</dd>
-
-        <dt>Apellido</dt>
-        <dd>@Model.Apellido</dd>
-
-        <dt>DNI</dt>
-        <dd>@Model.Dni</dd>
-
-        <dt>Teléfono</dt>
-        <dd>@Model.Telefono</dd>
-
-        <dt>Email</dt>
-        <dd>@Model.Email</dd>
-
-        <dt>Activo</dt>
-        <dd>@Model.Activo</dd>
-    </dl>
-
-    <a asp-action="Edit" asp-route-id="@Model.IdPropietario">
-        Editar
-    </a>
-
-    <a asp-action="Index">
-        Volver
-    </a>
+    <div class="acciones">
+        <a asp-action="Edit" asp-route-id="@Model.IdPropietario" class="boton-guardar">Editar</a>
+        <a asp-action="Index" class="boton-volver">Volver al listado</a>
+    </div>
 </div>

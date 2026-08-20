@@ -4,58 +4,51 @@
     ViewData["Title"] = "Propietarios";
 }
 
-<h1>Propietarios</h1>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">
-        Nuevo propietario
-    </a>
-</p>
+<div class="contenedor-principal">
+    <div class="encabezado-tabla">
+        <h2>Listado de Propietarios</h2>
+        <a asp-action="Create" class="boton-nuevo">+ Nuevo Propietario</a>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Código</th>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>DNI</th>
-            <th>Teléfono</th>
-            <th>Email</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        @foreach (var propietario in Model)
-        {
+    <table class="tabla-datos">
+        <thead>
             <tr>
-                <td>@propietario.IdPropietario</td>
-                <td>@propietario.Nombre</td>
-                <td>@propietario.Apellido</td>
-                <td>@propietario.Dni</td>
-                <td>@propietario.Telefono</td>
-                <td>@propietario.Email</td>
-
-                <td>
-                    <a asp-action="Details"
-                       asp-route-id="@propietario.IdPropietario"
-                       class="btn btn-info btn-sm">
-                        Ver
-                    </a>
-
-                    <a asp-action="Edit"
-                       asp-route-id="@propietario.IdPropietario"
-                       class="btn btn-warning btn-sm">
-                        Editar
-                    </a>
-
-                    <a asp-action="Delete"
-                       asp-route-id="@propietario.IdPropietario"
-                       class="btn btn-danger btn-sm">
-                        Baja
-                    </a>
-                </td>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>DNI</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Acciones</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var propietario in Model)
+            {
+                <tr>
+                    <td>@propietario.IdPropietario</td>
+                    <td>@propietario.Nombre</td>
+                    <td>@propietario.Apellido</td>
+                    <td>@propietario.Dni</td>
+                    <td>@propietario.Telefono</td>
+                    <td>@propietario.Email</td>
+                    <td class="columna-acciones">
+                        <a asp-action="Details" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Ver detalles">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Editar">
+                            <span class="material-symbols-outlined">edit</span>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@propietario.IdPropietario" class="boton-icono boton-icono-eliminar" title="Borrar">
+                            <span class="material-symbols-outlined">delete</span>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

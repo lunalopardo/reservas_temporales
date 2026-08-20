@@ -1,8 +1,31 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
+
+<div class="home-container">
+    <h1 class="home-title">Gestión de Reservas Temporales</h1>
+    <p class="home-subtitle">Seleccioná una sección para administrar los registros del sistema.</p>
+
+    <div class="cards-grid">
+        <div class="card-item">
+            <div>
+                <div class="card-icon">🏠</div>
+                <h3>Propietarios</h3>
+                <p>Administrá el registro de propietarios de inmuebles, altas y modificaciones.</p>
+            </div>
+            <a asp-controller="Propietarios" asp-action="Index" class="btn-card">Ir a Propietarios</a>
+        </div>
+
+        <div class="card-item">
+            <div>
+                <div class="card-icon">🔑</div>
+                <h3>Inquilinos</h3>
+                <p>Gestioná la lista de inquilinos registrados, consultas de datos y estados.</p>
+            </div>
+            <a asp-controller="Inquilinos" asp-action="Index" class="btn-card">Ir a Inquilinos</a>
+        </div>
+    </div>
 </div>

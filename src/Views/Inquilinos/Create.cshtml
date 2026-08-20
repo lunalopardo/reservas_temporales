@@ -5,10 +5,11 @@
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
-
-<h2>Nuevo inquilino</h2>
+<link rel="stylesheet" href="~/css/site.css" />
 
 <div class="formulario-contenedor">
+
+    <h2 class="titulo-vista">Nuevo Inquilino</h2>
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
 
@@ -50,5 +51,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

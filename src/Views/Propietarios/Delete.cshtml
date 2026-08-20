@@ -1,45 +1,33 @@
 @model ReservasTemporales.Models.Propietario
 
 @{
-    ViewData["Title"] = "Dar de baja";
+    ViewData["Title"] = "Eliminar propietario";
 }
 
-<h1>Dar de baja propietario</h1>
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 
-<h3>¿Está seguro que desea dar de baja a este propietario?</h3>
+<div class="formulario-contenedor">
+    <h2 class="titulo-vista">Eliminar propietario</h2>
 
-<div>
-    <hr />
+    <p class="subtitulo-alerta">¿Estás seguro de que querés dar de baja a este propietario?</p>
 
-    <dl>
-        <dt>Código</dt>
-        <dd>@Model.IdPropietario</dd>
-
-        <dt>Nombre</dt>
-        <dd>@Model.Nombre</dd>
-
-        <dt>Apellido</dt>
-        <dd>@Model.Apellido</dd>
-
-        <dt>DNI</dt>
-        <dd>@Model.Dni</dd>
-
-        <dt>Teléfono</dt>
-        <dd>@Model.Telefono</dd>
-
-        <dt>Email</dt>
-        <dd>@Model.Email</dd>
-    </dl>
+    <div class="detalle-datos">
+        <p><strong>Código:</strong> @Model.IdPropietario</p>
+        <p><strong>Nombre:</strong> @Model.Nombre @Model.Apellido</p>
+        <p><strong>DNI:</strong> @Model.Dni</p>
+        <p><strong>Teléfono:</strong> @Model.Telefono</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+    </div>
 
     <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+
         <input type="hidden" asp-for="IdPropietario" />
 
-        <button type="submit">
-            Confirmar baja
-        </button>
-
-        <a asp-action="Index">
-            Cancelar
-        </a>
+        <div class="acciones">
+            <button type="submit" class="boton-eliminar">Confirmar baja</button>
+            <a asp-action="Index" class="boton-volver">Cancelar</a>
+        </div>
     </form>
 </div>

@@ -4,44 +4,54 @@
     ViewData["Title"] = "Nuevo propietario";
 }
 
-<h1>Nuevo propietario</h1>
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-    <div>
-        <label asp-for="Nombre">Nombre</label>
-        <input asp-for="Nombre" />
-        <span asp-validation-for="Nombre"></span>
-    </div>
+<div class="formulario-contenedor">
 
-    <div>
-        <label asp-for="Apellido">Apellido</label>
-        <input asp-for="Apellido" />
-        <span asp-validation-for="Apellido"></span>
-    </div>
+    <h2 class="titulo-vista">Nuevo Propietario</h2>
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
 
-    <div>
-        <label asp-for="Dni">DNI</label>
-        <input asp-for="Dni" />
-        <span asp-validation-for="Dni"></span>
-    </div>
+        <div class="campo">
+            <label asp-for="Nombre">Nombre</label>
+            <input asp-for="Nombre" />
+            <span asp-validation-for="Nombre" class="mensaje-error"></span>
+        </div>
 
-    <div>
-        <label asp-for="Telefono">Teléfono</label>
-        <input asp-for="Telefono" />
-        <span asp-validation-for="Telefono"></span>
-    </div>
+        <div class="campo">
+            <label asp-for="Apellido">Apellido</label>
+            <input asp-for="Apellido" />
+            <span asp-validation-for="Apellido" class="mensaje-error"></span>
+        </div>
 
-    <div>
-        <label asp-for="Email">Email</label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
-    </div>
+        <div class="campo">
+            <label asp-for="Dni">DNI</label>
+            <input asp-for="Dni" />
+            <span asp-validation-for="Dni" class="mensaje-error"></span>
+        </div>
 
-    <br />
+        <div class="campo">
+            <label asp-for="Telefono">Teléfono</label>
+            <input asp-for="Telefono" />
+            <span asp-validation-for="Telefono" class="mensaje-error"></span>
+        </div>
 
-    <button type="submit">Guardar</button>
+        <div class="campo">
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" />
+            <span asp-validation-for="Email" class="mensaje-error"></span>
+        </div>
 
-    <a asp-action="Index">Volver</a>
+        <div class="acciones">
+            <button type="submit" class="boton-guardar">Guardar</button>
+            <a asp-action="Index" class="boton-volver">Volver</a>
+        </div>
+    </form>
+</div>
 
-</form>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

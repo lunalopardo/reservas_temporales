@@ -5,10 +5,11 @@
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
-
-<h2>Detalles del Inquilino</h2>
+<link rel="stylesheet" href="~/css/site.css" />
 
 <div class="tarjeta-detalle">
+    <h2 class="titulo-vista">Detalles del Inquilino</h2>
+
     <div class="tarjeta-cabecera">
         <h3>@Model.Nombre @Model.Apellido</h3>
     </div>
@@ -21,7 +22,7 @@
         <p><strong>Estado:</strong> @(Model.Activo ? "Activo" : "Inactivo")</p>
     </div>
 
-    <div class="acciones mt-3">
+    <div class="acciones">
         <a asp-action="Edit" asp-route-id="@Model.IdInquilino" class="boton-guardar">Editar</a>
         <a asp-action="Index" class="boton-volver">Volver al listado</a>
     </div>
