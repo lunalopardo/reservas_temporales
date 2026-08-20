@@ -1,0 +1,61 @@
+@model IEnumerable<ReservasTemporales.Models.Propietario>
+
+@{
+    ViewData["Title"] = "Propietarios";
+}
+
+<h1>Propietarios</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">
+        Nuevo propietario
+    </a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var propietario in Model)
+        {
+            <tr>
+                <td>@propietario.IdPropietario</td>
+                <td>@propietario.Nombre</td>
+                <td>@propietario.Apellido</td>
+                <td>@propietario.Dni</td>
+                <td>@propietario.Telefono</td>
+                <td>@propietario.Email</td>
+
+                <td>
+                    <a asp-action="Details"
+                       asp-route-id="@propietario.IdPropietario"
+                       class="btn btn-info btn-sm">
+                        Ver
+                    </a>
+
+                    <a asp-action="Edit"
+                       asp-route-id="@propietario.IdPropietario"
+                       class="btn btn-warning btn-sm">
+                        Editar
+                    </a>
+
+                    <a asp-action="Delete"
+                       asp-route-id="@propietario.IdPropietario"
+                       class="btn btn-danger btn-sm">
+                        Baja
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

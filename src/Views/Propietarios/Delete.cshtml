@@ -1,0 +1,45 @@
+@model ReservasTemporales.Models.Propietario
+
+@{
+    ViewData["Title"] = "Dar de baja";
+}
+
+<h1>Dar de baja propietario</h1>
+
+<h3>¿Está seguro que desea dar de baja a este propietario?</h3>
+
+<div>
+    <hr />
+
+    <dl>
+        <dt>Código</dt>
+        <dd>@Model.IdPropietario</dd>
+
+        <dt>Nombre</dt>
+        <dd>@Model.Nombre</dd>
+
+        <dt>Apellido</dt>
+        <dd>@Model.Apellido</dd>
+
+        <dt>DNI</dt>
+        <dd>@Model.Dni</dd>
+
+        <dt>Teléfono</dt>
+        <dd>@Model.Telefono</dd>
+
+        <dt>Email</dt>
+        <dd>@Model.Email</dd>
+    </dl>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="IdPropietario" />
+
+        <button type="submit">
+            Confirmar baja
+        </button>
+
+        <a asp-action="Index">
+            Cancelar
+        </a>
+    </form>
+</div>

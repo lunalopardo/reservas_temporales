@@ -1,0 +1,42 @@
+@model ReservasTemporales.Models.Propietario
+
+@{
+    ViewData["Title"] = "Detalle del propietario";
+}
+
+<h1>Detalle del propietario</h1>
+
+<div>
+    <hr />
+
+    <dl>
+        <dt>Código</dt>
+        <dd>@Model.IdPropietario</dd>
+
+        <dt>Nombre</dt>
+        <dd>@Model.Nombre</dd>
+
+        <dt>Apellido</dt>
+        <dd>@Model.Apellido</dd>
+
+        <dt>DNI</dt>
+        <dd>@Model.Dni</dd>
+
+        <dt>Teléfono</dt>
+        <dd>@Model.Telefono</dd>
+
+        <dt>Email</dt>
+        <dd>@Model.Email</dd>
+
+        <dt>Activo</dt>
+        <dd>@Model.Activo</dd>
+    </dl>
+
+    <a asp-action="Edit" asp-route-id="@Model.IdPropietario">
+        Editar
+    </a>
+
+    <a asp-action="Index">
+        Volver
+    </a>
+</div>

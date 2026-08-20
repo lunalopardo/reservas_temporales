@@ -1,0 +1,47 @@
+@model ReservasTemporales.Models.Propietario
+
+@{
+    ViewData["Title"] = "Nuevo propietario";
+}
+
+<h1>Nuevo propietario</h1>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div>
+        <label asp-for="Nombre">Nombre</label>
+        <input asp-for="Nombre" />
+        <span asp-validation-for="Nombre"></span>
+    </div>
+
+    <div>
+        <label asp-for="Apellido">Apellido</label>
+        <input asp-for="Apellido" />
+        <span asp-validation-for="Apellido"></span>
+    </div>
+
+    <div>
+        <label asp-for="Dni">DNI</label>
+        <input asp-for="Dni" />
+        <span asp-validation-for="Dni"></span>
+    </div>
+
+    <div>
+        <label asp-for="Telefono">Teléfono</label>
+        <input asp-for="Telefono" />
+        <span asp-validation-for="Telefono"></span>
+    </div>
+
+    <div>
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" />
+        <span asp-validation-for="Email"></span>
+    </div>
+
+    <br />
+
+    <button type="submit">Guardar</button>
+
+    <a asp-action="Index">Volver</a>
+
+</form>
