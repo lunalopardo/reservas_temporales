@@ -98,6 +98,12 @@ namespace ReservasTemporales.Controllers
                 return NotFound();
             }
 
+            // Validar si otro propietario distinto ya tiene este email
+            if (await _context.Propietarios.AnyAsync(p => p.Email == propietario.Email && p.IdPropietario != id))
+            {
+                ModelState.AddModelError("Email", "Este correo electrónico ya se encuentra registrado por otro propietario.");
+            }
+
             if (ModelState.IsValid)
             {
                 try

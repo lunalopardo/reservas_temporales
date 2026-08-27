@@ -122,6 +122,12 @@ namespace ReservasTemporales.Controllers
                 return NotFound();
             }
 
+            // Validar si otro inquilino distinto ya tiene este email
+            if (await _context.Inquilinos.AnyAsync(i => i.Email == inquilino.Email && i.IdInquilino != id))
+            {
+                ModelState.AddModelError("Email", "Este correo electrónico ya se encuentra registrado por otro inquilino.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
