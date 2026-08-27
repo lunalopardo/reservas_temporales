@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ReservasTemporales.Data;
 
@@ -10,9 +11,11 @@ using ReservasTemporales.Data;
 namespace src.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260827194820_InitialSeedInmuebles")]
+    partial class InitialSeedInmuebles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,9 +46,6 @@ namespace src.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<bool>("Estado")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("FotoPortada")
                         .HasColumnType("longtext");
 
@@ -75,7 +75,6 @@ namespace src.Migrations
                             Coord = "-34.6037,-58.3816",
                             Cupo = 4,
                             Direccion = "Av. Corrientes 1234, CABA",
-                            Estado = true,
                             IdPropietario = 1,
                             Precio = 45000.00m,
                             Tipo = 1
@@ -87,7 +86,6 @@ namespace src.Migrations
                             Coord = "-34.9214,-57.9545",
                             Cupo = 6,
                             Direccion = "Calle 50 #432, La Plata",
-                            Estado = true,
                             IdPropietario = 2,
                             Precio = 75000.00m,
                             Tipo = 0
@@ -99,7 +97,6 @@ namespace src.Migrations
                             Coord = "-41.1335,-71.3103",
                             Cupo = 5,
                             Direccion = "Ruta 40 Km 12, Bariloche",
-                            Estado = true,
                             IdPropietario = 3,
                             Precio = 120000.00m,
                             Tipo = 2

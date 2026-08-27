@@ -19,7 +19,7 @@ namespace ReservasTemporales.Controllers
         // GET: Inquilinos
         public async Task<IActionResult> Index(string buscar, int pagina = 1)
         {
-            int registrosPorPagina = 1;
+            int registrosPorPagina = 5;
 
             var query = _context.Inquilinos.Where(i => i.Activo);
 
