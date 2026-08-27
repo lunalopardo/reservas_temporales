@@ -95,6 +95,12 @@ namespace ReservasTemporales.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Inquilino inquilino)
         {
+            // para prevenir que se guarden dos personas con el mismo correo
+            if (await _context.Inquilinos.AnyAsync(i => i.Email == inquilino.Email))
+            {
+                ModelState.AddModelError("Email", "Este correo electrónico ya se encuentra registrado.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(inquilino);

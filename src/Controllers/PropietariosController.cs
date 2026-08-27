@@ -52,11 +52,16 @@ namespace ReservasTemporales.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Propietario propietario)
         {
+            // para prevenir que se guarden dos personas con el mismo correo
+            if (await _context.Propietarios.AnyAsync(p => p.Email == propietario.Email))
+            {
+                ModelState.AddModelError("Email", "Este correo electrónico ya se encuentra registrado.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(propietario);
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
 
