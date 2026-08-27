@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Listado de Inquilinos";
+    string filtroActual = ViewData["FiltroActual"] as string ?? "";
+    int paginaActual = (int)(ViewData["PaginaActual"] ?? 1);
+    int totalPaginas = (int)(ViewData["TotalPaginas"] ?? 1);
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -15,6 +18,23 @@
         <a asp-action="Create" class="boton-nuevo">+ Nuevo Inquilino</a>
     </div>
 
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="d-flex gap-2 align-items-center">
+            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda"
+                   placeholder="Buscar por nombre, apellido o DNI..." />
+
+            <button type="submit" class="boton-buscar">
+                <span class="material-symbols-outlined">search</span>
+                <span>Buscar</span>
+            </button>
+
+            @if (!string.IsNullOrEmpty(filtroActual))
+            {
+                <a asp-action="Index" class="boton-limpiar">Limpiar</a>
+            }
+        </div>
+    </form>
+
     <table class="tabla-datos">
         <thead>
             <tr>
@@ -27,29 +47,68 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (!Model.Any())
             {
                 <tr>
-                    <td>@item.Nombre</td>
-                    <td>@item.Apellido</td>
-                    <td>@item.Dni</td>
-                    <td>@item.Telefono</td>
-                    <td>@item.Email</td>
-                    <td class="columna-acciones">
-                        <a asp-action="Details" asp-route-id="@item.IdInquilino" class="boton-icono"
-                           title="Ver detalles">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </a>
-                        <a asp-action="Edit" asp-route-id="@item.IdInquilino" class="boton-icono" title="Editar">
-                            <span class="material-symbols-outlined">edit</span>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.IdInquilino"
-                           class="boton-icono boton-icono-eliminar" title="Borrar">
-                            <span class="material-symbols-outlined">delete</span>
-                        </a>
-                    </td>
+                    <td colspan="6" class="text-center py-3">No se encontraron resultados.</td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Nombre</td>
+                        <td>@item.Apellido</td>
+                        <td>@item.Dni</td>
+                        <td>@item.Telefono</td>
+                        <td>@item.Email</td>
+                        <td class="columna-acciones">
+                            <a asp-action="Details" asp-route-id="@item.IdInquilino" class="boton-icono" title="Ver detalles">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.IdInquilino" class="boton-icono" title="Editar">
+                                <span class="material-symbols-outlined">edit</span>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.IdInquilino" class="boton-icono boton-icono-eliminar"
+                               title="Borrar">
+                                <span class="material-symbols-outlined">delete</span>
+                            </a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
+
+    <!--Paginado-->
+    @if (totalPaginas > 1)
+    {
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="paginacion-custom">
+                <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
+                       asp-route-buscar="@filtroActual">
+                        Anterior
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="pagina-item @(i == paginaActual ? "activo" : "")">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
+                       asp-route-buscar="@filtroActual">
+                        Siguiente
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>

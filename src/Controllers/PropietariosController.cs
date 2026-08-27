@@ -15,11 +15,38 @@ namespace ReservasTemporales.Controllers
         }
 
         // GET: Propietarios
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string buscar, int pagina = 1)
         {
-            return View(await _context.Propietarios
-                .Where(p => p.Activo)
-                .ToListAsync());
+            int registrosPorPagina = 5;
+
+            var query = _context.Propietarios.Where(p => p.Activo);
+
+            if (!string.IsNullOrEmpty(buscar))
+            {
+                buscar = buscar.Trim();
+                query = query.Where(p => p.Nombre.Contains(buscar) ||
+                                         p.Apellido.Contains(buscar) ||
+                                         p.Dni.Contains(buscar));
+            }
+
+            // paginado en el servidor
+            int totalRegistros = await query.CountAsync();
+            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
+
+            pagina = Math.Max(1, Math.Min(pagina, totalPaginas > 0 ? totalPaginas : 1));
+
+            var listado = await query
+                .Skip((pagina - 1) * registrosPorPagina)
+                .Take(registrosPorPagina)
+                .ToListAsync();
+
+            
+            // mapear datos a la Vista
+            ViewData["FiltroActual"] = buscar;
+            ViewData["PaginaActual"] = pagina;
+            ViewData["TotalPaginas"] = totalPaginas;
+
+            return View(listado);
         }
 
         // GET: Propietarios/Details/5

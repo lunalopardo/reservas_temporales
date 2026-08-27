@@ -1,18 +1,37 @@
 @model IEnumerable<ReservasTemporales.Models.Propietario>
 
 @{
-    ViewData["Title"] = "Propietarios";
+    ViewData["Title"] = "Listado de Propietarios";
+    string filtroActual = ViewData["FiltroActual"] as string ?? "";
+    int paginaActual = (int)(ViewData["PaginaActual"] ?? 1);
+    int totalPaginas = (int)(ViewData["TotalPaginas"] ?? 1);
 }
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="~/css/formularios.css" />
 <link rel="stylesheet" href="~/css/site.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
 <div class="contenedor-principal">
     <div class="encabezado-tabla">
         <h2>Listado de Propietarios</h2>
         <a asp-action="Create" class="boton-nuevo">+ Nuevo Propietario</a>
     </div>
+
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="d-flex gap-2 align-items-center">
+            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda" placeholder="Buscar por nombre, apellido o DNI..." />
+            
+            <button type="submit" class="boton-buscar">
+                <span class="material-symbols-outlined">search</span>
+                <span>Buscar</span>
+            </button>
+
+            @if (!string.IsNullOrEmpty(filtroActual))
+            {
+                <a asp-action="Index" class="boton-limpiar">Limpiar</a>
+            }
+        </div>
+    </form>
 
     <table class="tabla-datos">
         <thead>
@@ -27,28 +46,66 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var propietario in Model)
+            @if (!Model.Any())
             {
                 <tr>
-                    <td>@propietario.IdPropietario</td>
-                    <td>@propietario.Nombre</td>
-                    <td>@propietario.Apellido</td>
-                    <td>@propietario.Dni</td>
-                    <td>@propietario.Telefono</td>
-                    <td>@propietario.Email</td>
-                    <td class="columna-acciones">
-                        <a asp-action="Details" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Ver detalles">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </a>
-                        <a asp-action="Edit" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Editar">
-                            <span class="material-symbols-outlined">edit</span>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@propietario.IdPropietario" class="boton-icono boton-icono-eliminar" title="Borrar">
-                            <span class="material-symbols-outlined">delete</span>
-                        </a>
-                    </td>
+                    <td colspan="7" class="text-center py-3">No se encontraron resultados.</td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var propietario in Model)
+                {
+                    <tr>
+                        <td>@propietario.IdPropietario</td>
+                        <td>@propietario.Nombre</td>
+                        <td>@propietario.Apellido</td>
+                        <td>@propietario.Dni</td>
+                        <td>@propietario.Telefono</td>
+                        <td>@propietario.Email</td>
+                        <td class="columna-acciones">
+                            <a asp-action="Details" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Ver detalles">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Editar">
+                                <span class="material-symbols-outlined">edit</span>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@propietario.IdPropietario" class="boton-icono boton-icono-eliminar" title="Borrar">
+                                <span class="material-symbols-outlined">delete</span>
+                            </a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
+
+    <!--Paginado-->
+    @if (totalPaginas > 1)
+    {
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="paginacion-custom">
+                <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)" asp-route-buscar="@filtroActual">
+                        Anterior
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="pagina-item @(i == paginaActual ? "activo" : "")">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)" asp-route-buscar="@filtroActual">
+                        Siguiente
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>

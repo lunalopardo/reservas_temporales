@@ -17,11 +17,38 @@ namespace ReservasTemporales.Controllers
         #region GET Actions
 
         // GET: Inquilinos
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string buscar, int pagina = 1)
         {
-            return View(await _context.Inquilinos
-                .Where(i => i.Activo)
-                .ToListAsync());
+            int registrosPorPagina = 1;
+
+            var query = _context.Inquilinos.Where(i => i.Activo);
+
+            // búsqueda en el servidor por Nombre, Apellido o DNI
+            if (!string.IsNullOrEmpty(buscar))
+            {
+                buscar = buscar.Trim();
+                query = query.Where(i => i.Nombre.Contains(buscar) ||
+                                         i.Apellido.Contains(buscar) ||
+                                         i.Dni.Contains(buscar));
+            }
+
+            // paginado en el servidor
+            int totalRegistros = await query.CountAsync();
+            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
+
+            pagina = Math.Max(1, Math.Min(pagina, totalPaginas > 0 ? totalPaginas : 1));
+
+            var listado = await query
+                .Skip((pagina - 1) * registrosPorPagina)
+                .Take(registrosPorPagina)
+                .ToListAsync(); //acá se ejecuta la consulta en MySQL.
+
+            // mapear datos a la Vista
+            ViewData["FiltroActual"] = buscar;
+            ViewData["PaginaActual"] = pagina;
+            ViewData["TotalPaginas"] = totalPaginas;
+
+            return View(listado);
         }
 
         // GET: Inquilinos/Details/5
