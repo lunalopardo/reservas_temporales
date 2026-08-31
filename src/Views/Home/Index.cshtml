@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Inicio";
+ViewData["Title"] = "Inicio";
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -7,41 +7,101 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
 <div class="home-container">
-    <h1 class="home-title">Gestión de Reservas Temporales</h1>
-    <p class="home-subtitle">Seleccioná una sección para administrar los registros del sistema.</p>
 
-    <div class="cards-grid">
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">real_estate_agent</span>
-                </div>
-                <h3>Propietarios</h3>
-                <p>Administrá el registro de propietarios de inmuebles, altas y modificaciones.</p>
+
+<h1 class="home-title">Gestión de Reservas Temporales</h1>
+
+<p class="home-subtitle">
+    Seleccioná una sección para administrar los registros del sistema.
+</p>
+
+<div class="cards-grid">
+
+   
+    <div class="card-item">
+        <div>
+            <div class="card-icon">
+                <span class="material-symbols-outlined">real_estate_agent</span>
             </div>
-            <a asp-controller="Propietarios" asp-action="Index" class="btn-card">Ir a Propietarios</a>
+
+            <h3>Propietarios</h3>
+
+            <p>
+                Administrá el registro de propietarios de inmuebles, altas y modificaciones.
+            </p>
         </div>
 
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">person</span>
-                </div>
-                <h3>Inquilinos</h3>
-                <p>Gestioná la lista de inquilinos registrados, consultas de datos y estados.</p>
-            </div>
-            <a asp-controller="Inquilinos" asp-action="Index" class="btn-card">Ir a Inquilinos</a>
-        </div>
-
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">home</span>
-                </div>
-                <h3>Inmuebles</h3>
-                <p>Administrá los inmuebles cargados, agregá nuevos y consultá información.</p>
-            </div>
-            <a asp-controller="Inmuebles" asp-action="Index" class="btn-card">Ir a Inmuebles</a>
-        </div>
+        <a asp-controller="Propietarios"
+           asp-action="Index"
+           class="btn-card">
+            Ir a Propietarios
+        </a>
     </div>
-</div>
+
+    
+    <div class="card-item">
+        <div>
+            <div class="card-icon">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+
+            <h3>Inquilinos</h3>
+
+            <p>
+                Gestioná la lista de inquilinos registrados, consultas de datos y estados.
+            </p>
+        </div>
+
+        <a asp-controller="Inquilinos"
+           asp-action="Index"
+           class="btn-card">
+            Ir a Inquilinos
+        </a>
+    </div>
+
+  
+    <div class="card-item">
+        <div>
+            <div class="card-icon">
+                <span class="material-symbols-outlined">home</span>
+            </div>
+
+            <h3>Inmuebles</h3>
+
+            <p>
+                Administrá los inmuebles cargados, agregá nuevos y consultá información.
+            </p>
+        </div>
+
+        <a asp-controller="Inmuebles"
+           asp-action="Index"
+           class="btn-card">
+            Ir a Inmuebles
+        </a>
+    </div>
+
+    <!-- Reservas -->
+    <div class="card-item">
+        <div>
+            <div class="card-icon">
+                <span class="material-symbols-outlined">event</span>
+            </div>
+
+            <h3>Reservas</h3>
+
+            <p>
+                Gestioná las reservas de alquiler, fechas, inmuebles e inquilinos.
+            </p>
+        </div>
+
+        <a asp-controller="Reservas"
+           asp-action="Index"
+           class="btn-card">
+            Ir a Reservas
+        </a>
+    </div>
+
+</div> 
+
+
+</div> 

@@ -1,4 +1,8 @@
-/* Tarjeta de Detalle */
+```css
+/* ============================================================
+   TARJETA DE DETALLE
+   ============================================================ */
+
 .tarjeta-cuerpo p {
     color: var(--text-secondary);
     border-bottom: 1px solid var(--border-color);
@@ -16,14 +20,22 @@
     margin-top: 24px;
 }
 
-/* Subtítulo de advertencia (Delete) */
+
+/* ============================================================
+   SUBTÍTULO DE ADVERTENCIA - DELETE
+   ============================================================ */
+
 .subtitulo-alerta {
     color: var(--text-secondary);
     font-size: 0.95rem;
     margin-bottom: 20px;
 }
 
-/* Lista de datos en Delete */
+
+/* ============================================================
+   LISTA DE DATOS EN DELETE
+   ============================================================ */
+
 .detalle-datos {
     background-color: var(--bg-main);
     border: 1px solid var(--border-color);
@@ -43,7 +55,10 @@
 }
 
 
-/* carrusel de inmuebles */
+/* ============================================================
+   CARRUSEL DE INMUEBLES
+   ============================================================ */
+
 .carrusel-contenedor {
     margin: 15px 0;
     display: flex;
@@ -131,7 +146,11 @@
     margin: 15px 0;
 }
 
-/* Cabecera de la entidad dentro de la tarjeta */
+
+/* ============================================================
+   CABECERA DE LA ENTIDAD DENTRO DE LA TARJETA
+   ============================================================ */
+
 .tarjeta-cabecera {
     background-color: var(--bg-main);
     border: 1px solid var(--border-color);
@@ -146,4 +165,135 @@
     font-size: 1.3rem;
     color: var(--accent);
     font-weight: 600;
+}
+
+
+/* ============================================================
+   CALENDARIO DE RESERVAS
+   Solo para los calendarios de Create y Edit de Reservas
+   ============================================================ */
+
+.calendario-ayuda {
+    display: flex;
+    gap: 20px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.calendario-ayuda span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* ============================================================
+   INDICADORES
+   ============================================================ */
+
+.indicador {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+
+/* Verde = disponible */
+
+.indicador.disponible {
+    background-color: #28a745;
+}
+
+
+/* Rojo = ocupado por OTRA reserva */
+
+.indicador.ocupado {
+    background-color: #dc3545;
+}
+
+
+/* Amarillo = reserva que estamos editando */
+
+.indicador.reserva-actual {
+    background-color: #ffc107;
+}
+
+
+/* ============================================================
+   FLATPICKR
+   ============================================================ */
+
+
+/* VERDE - DIA DISPONIBLE */
+
+.flatpickr-calendar .dia-disponible {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-color: #28a745 !important;
+    border-radius: 50%;
+}
+
+
+/* ROJO - DIA OCUPADO POR OTRA RESERVA */
+
+.flatpickr-calendar .dia-ocupado {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+    border-radius: 50%;
+}
+
+
+/* AMARILLO - DIA DE LA RESERVA QUE ESTAMOS EDITANDO */
+
+.flatpickr-calendar .dia-reserva-actual {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    border-color: #ffc107 !important;
+    border-radius: 50%;
+    font-weight: bold;
+}
+
+
+/* Hover sobre dia disponible */
+
+.flatpickr-calendar .dia-disponible:hover {
+    background-color: #218838 !important;
+}
+
+
+/* Hover sobre reserva actual */
+
+.flatpickr-calendar .dia-reserva-actual:hover {
+    background-color: #e0a800 !important;
+}
+
+
+/* ============================================================
+   FECHA SELECCIONADA
+   ============================================================ */
+
+.flatpickr-calendar .selected {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+    color: white !important;
+}
+
+
+/* ============================================================
+   MENSAJE DE EXITO
+   ============================================================ */
+
+.mensaje-exito {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    transition: opacity 0.5s ease;
 }

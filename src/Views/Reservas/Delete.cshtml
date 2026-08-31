@@ -1,0 +1,68 @@
+@model ReservasTemporales.Models.Reserva
+
+@{
+ViewData["Title"] = "Eliminar reserva";
+}
+
+<h1>Eliminar reserva</h1>
+
+<h3>¿Esta seguro que desea eliminar esta reserva?</h3>
+
+<hr />
+
+<dl class="row">
+
+
+<dt class="col-sm-3">
+    Inmueble
+</dt>
+<dd class="col-sm-9">
+    @Model.Inmueble?.Direccion
+</dd>
+
+<dt class="col-sm-3">
+    Inquilino
+</dt>
+<dd class="col-sm-9">
+    @Model.Inquilino?.Nombre @Model.Inquilino?.Apellido
+</dd>
+
+<dt class="col-sm-3">
+    Fecha desde
+</dt>
+<dd class="col-sm-9">
+    @Model.FechaDesde.ToString("dd/MM/yyyy")
+</dd>
+
+<dt class="col-sm-3">
+    Fecha hasta
+</dt>
+<dd class="col-sm-9">
+    @Model.FechaHasta.ToString("dd/MM/yyyy")
+</dd>
+
+<dt class="col-sm-3">
+    Monto diario
+</dt>
+<dd class="col-sm-9">
+    $ @Model.MontoDiario.ToString("N2")
+</dd>
+
+
+</dl>
+
+<form asp-action="Delete" method="post">
+
+
+<input type="hidden" asp-for="Id" />
+
+<button type="submit" class="btn btn-danger">
+    Si, eliminar
+</button>
+
+<a asp-action="Index" class="btn btn-secondary">
+    Cancelar
+</a>
+
+
+</form>
