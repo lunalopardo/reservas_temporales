@@ -19,6 +19,14 @@ namespace ReservasTemporales.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configuración de nombres de tablas en singular
+            modelBuilder.Entity<Propietario>().ToTable("Propietario");
+            modelBuilder.Entity<Inquilino>().ToTable("Inquilino");
+            modelBuilder.Entity<Inmueble>().ToTable("Inmueble");
+            modelBuilder.Entity<Reserva>().ToTable("Reserva");
+            modelBuilder.Entity<Usuario>().ToTable("Usuario");
+
+            // Llaves y Relaciones
             modelBuilder.Entity<Usuario>()
                 .HasKey(u => u.Id);
 
@@ -118,7 +126,7 @@ namespace ReservasTemporales.Data
                 }
             );
 
-            // Carga inicial de Inmuebles (sin Estado)
+            // Carga inicial de Inmuebles
             modelBuilder.Entity<Inmueble>().HasData(
                 new Inmueble
                 {
