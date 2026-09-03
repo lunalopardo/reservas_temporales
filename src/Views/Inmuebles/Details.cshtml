@@ -65,7 +65,7 @@
         <p><strong>Cupo de Personas:</strong> @Model.Cupo personas</p>
         <p><strong>Precio por día:</strong> $@Model.Precio.ToString("N2")</p>
         <p><strong>Coordenadas GPS:</strong> @(string.IsNullOrEmpty(Model.Coord) ? "No especificadas" : Model.Coord)</p>
-        <p><strong>Estado:</strong> @(Model.Estado ? "Disponible para rentar" : "No disponible")</p>
+        <p><strong>Estado:</strong> @(Model.EstaDisponibleHoy ? "Disponible para rentar" : "No disponible")</p>
     </div>
 
     <div class="acciones">

@@ -59,10 +59,33 @@ namespace ReservasTemporales.Models
         [Display(Name = "Galería de Fotos")]
         public string? Fotos { get; set; }
 
-        [Display(Name = "Inmueble Disponible")]
-        public bool Estado { get; set; } = true;
-
         [Display(Name = "Inmueble Activo")]
         public bool Activo { get; set; } = true;
+
+        // Propiedad de navegación hacia sus Reservas
+        public virtual ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
+
+        // Propiedad calculada para ver el estado del inmueble HOY (y actualizar la tabla de inm según reservas)
+        [NotMapped]
+        [Display(Name = "Disponible Hoy")]
+        public bool EstaDisponibleHoy
+        {
+            get
+            {
+                // Si está dado de baja manualmente, no está disponible
+                if (!Activo) return false;
+
+                var hoy = DateTime.Today;
+
+                // Verificamos si existe alguna reserva activa que ocupe la fecha de hoy
+                bool estaOcupadoHoy = Reservas != null && Reservas.Any(r =>
+                    r.Activo &&
+                    r.FechaDesde.Date <= hoy &&
+                    r.FechaHasta.Date >= hoy
+                );
+
+                return !estaOcupadoHoy;
+            }
+        }
     }
 }

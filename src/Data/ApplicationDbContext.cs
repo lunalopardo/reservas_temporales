@@ -5,42 +5,22 @@ namespace ReservasTemporales.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(
-            DbContextOptions<ApplicationDbContext> options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
 
-        // ============================================================
-        // TABLAS
-        // ============================================================
-
         public DbSet<Propietario> Propietarios { get; set; }
-
         public DbSet<Inquilino> Inquilinos { get; set; }
-
         public DbSet<Inmueble> Inmuebles { get; set; }
-
         public DbSet<Reserva> Reservas { get; set; }
-
         public DbSet<Usuario> Usuarios { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-
-            // ========================================================
-            // USUARIO
-            // ========================================================
-
             modelBuilder.Entity<Usuario>()
                 .HasKey(u => u.Id);
-
-
-            // ========================================================
-            // RESERVA - USUARIO QUE CREO LA RESERVA
-            // ========================================================
 
             modelBuilder.Entity<Reserva>()
                 .HasOne(r => r.CreadoPorUsuario)
@@ -48,41 +28,30 @@ namespace ReservasTemporales.Data
                 .HasForeignKey(r => r.CreadoPorUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // ========================================================
-            // RESERVA - USUARIO QUE TERMINO LA RESERVA
-            // ========================================================
-
             modelBuilder.Entity<Reserva>()
                 .HasOne(r => r.TerminadoPorUsuario)
                 .WithMany()
                 .HasForeignKey(r => r.TerminadoPorUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            // =========================================================
-            // CARGA INICIAL DE USUARIO
-            // =========================================================
 
+            // Carga inicial de Usuarios
             modelBuilder.Entity<Usuario>().HasData(
-             new Usuario
-               {
-                Id = 1,
-                NombreUsuario = "admin",
-                Nombre = "Administrador",
-                Apellido = "Sistema",
-                Email = "admin@gmail.com",
-                Password = "123456",
-                Avatar = null,
-                Rol = "admin",
-                Activo = true
-    }
-);
+                new Usuario
+                {
+                    Id = 1,
+                    NombreUsuario = "admin",
+                    Nombre = "Administrador",
+                    Apellido = "Sistema",
+                    Email = "admin@gmail.com",
+                    Password = "123456",
+                    Avatar = null,
+                    Rol = "admin",
+                    Activo = true
+                }
+            );
 
-            // ========================================================
-            // CARGA INICIAL DE PROPIETARIOS
-            // ========================================================
-
+            // Carga inicial de Propietarios
             modelBuilder.Entity<Propietario>().HasData(
-
                 new Propietario
                 {
                     IdPropietario = 1,
@@ -93,7 +62,6 @@ namespace ReservasTemporales.Data
                     Telefono = "1144556677",
                     Activo = true
                 },
-
                 new Propietario
                 {
                     IdPropietario = 2,
@@ -104,7 +72,6 @@ namespace ReservasTemporales.Data
                     Telefono = "1133221100",
                     Activo = true
                 },
-
                 new Propietario
                 {
                     IdPropietario = 3,
@@ -117,13 +84,8 @@ namespace ReservasTemporales.Data
                 }
             );
 
-
-            // ========================================================
-            // CARGA INICIAL DE INQUILINOS
-            // ========================================================
-
+            // Carga inicial de Inquilinos
             modelBuilder.Entity<Inquilino>().HasData(
-
                 new Inquilino
                 {
                     IdInquilino = 1,
@@ -134,7 +96,6 @@ namespace ReservasTemporales.Data
                     Telefono = "1199887766",
                     Activo = true
                 },
-
                 new Inquilino
                 {
                     IdInquilino = 2,
@@ -145,7 +106,6 @@ namespace ReservasTemporales.Data
                     Telefono = "1188776655",
                     Activo = true
                 },
-
                 new Inquilino
                 {
                     IdInquilino = 3,
@@ -158,13 +118,8 @@ namespace ReservasTemporales.Data
                 }
             );
 
-
-            // ========================================================
-            // CARGA INICIAL DE INMUEBLES
-            // ========================================================
-
+            // Carga inicial de Inmuebles (sin Estado)
             modelBuilder.Entity<Inmueble>().HasData(
-
                 new Inmueble
                 {
                     Id = 1,
@@ -176,10 +131,8 @@ namespace ReservasTemporales.Data
                     Precio = 45000.00m,
                     FotoPortada = null,
                     Fotos = null,
-                    Estado = true,
                     Activo = true
                 },
-
                 new Inmueble
                 {
                     Id = 2,
@@ -191,10 +144,8 @@ namespace ReservasTemporales.Data
                     Precio = 75000.00m,
                     FotoPortada = null,
                     Fotos = null,
-                    Estado = true,
                     Activo = true
                 },
-
                 new Inmueble
                 {
                     Id = 3,
@@ -206,11 +157,37 @@ namespace ReservasTemporales.Data
                     Precio = 120000.00m,
                     FotoPortada = null,
                     Fotos = null,
-                    Estado = true,
+                    Activo = true
+                }
+            );
+
+            // Carga inicial de Reservas
+            modelBuilder.Entity<Reserva>().HasData(
+                new Reserva
+                {
+                    Id = 1,
+                    IdInmueble = 1,
+                    IdInquilino = 1,
+                    FechaDesde = new DateTime(2026, 9, 10),
+                    FechaHasta = new DateTime(2026, 9, 15),
+                    MontoDiario = 45000.00m,
+                    CreadoPorUserId = 1,
+                    TerminadoPorUserId = null,
+                    Activo = true
+                },
+                new Reserva
+                {
+                    Id = 2,
+                    IdInmueble = 2,
+                    IdInquilino = 2,
+                    FechaDesde = new DateTime(2026, 10, 1),
+                    FechaHasta = new DateTime(2026, 10, 7),
+                    MontoDiario = 75000.00m,
+                    CreadoPorUserId = 1,
+                    TerminadoPorUserId = null,
                     Activo = true
                 }
             );
         }
     }
 }
-

@@ -129,7 +129,7 @@ namespace ReservasTemporales.Controllers
                 // 3. VERIFICAR DISPONIBILIDAD
                 // ====================================================
 
-                if (!inmueble.Estado || !inmueble.Activo)
+                if (!inmueble.EstaDisponibleHoy || !inmueble.Activo)
                 {
                     ModelState.AddModelError(
                         "IdInmueble",
@@ -525,7 +525,7 @@ public async Task<IActionResult> FechasOcupadas(
             object? seleccionado = null)
         {
             var inmuebles = await _context.Inmuebles
-                .Where(i => i.Activo && i.Estado)
+                .Where(i => i.Activo && i.EstaDisponibleHoy)
                 .OrderBy(i => i.Direccion)
                 .ToListAsync();
 

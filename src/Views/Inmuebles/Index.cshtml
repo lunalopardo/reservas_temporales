@@ -68,7 +68,7 @@
                         <td>@item.Cupo pers.</td>
                         <td>$@item.Precio.ToString("N2")</td>
                         <td>
-                            @if (item.Estado)
+                            @if (item.EstaDisponibleHoy)
                             {
                                 <span class="badge badge-disponible">Disponible</span>
                             }

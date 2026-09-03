@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ReservasTemporales.Data;
 
@@ -11,9 +12,11 @@ using ReservasTemporales.Data;
 namespace src.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260903181433_AgregarTablaReservas")]
+    partial class AgregarTablaReservas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -319,30 +322,6 @@ namespace src.Migrations
                     b.HasIndex("TerminadoPorUserId");
 
                     b.ToTable("Reserva");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Activo = true,
-                            CreadoPorUserId = 1,
-                            FechaDesde = new DateTime(2026, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            FechaHasta = new DateTime(2026, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IdInmueble = 1,
-                            IdInquilino = 1,
-                            MontoDiario = 45000.00m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Activo = true,
-                            CreadoPorUserId = 1,
-                            FechaDesde = new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            FechaHasta = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IdInmueble = 2,
-                            IdInquilino = 2,
-                            MontoDiario = 75000.00m
-                        });
                 });
 
             modelBuilder.Entity("ReservasTemporales.Models.Usuario", b =>

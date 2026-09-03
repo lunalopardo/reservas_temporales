@@ -62,14 +62,6 @@
             <input type="file" name="archivosGaleria" accept="image/*" multiple />
         </div>
 
-        <div class="campo campo-checkbox">
-            <label asp-for="Estado">
-                <input asp-for="Estado" type="checkbox" />
-                Disponible para rentar
-            </label>
-            <span asp-validation-for="Estado" class="mensaje-error"></span>
-        </div>
-
         <div class="acciones">
             <button type="submit" class="boton-guardar">Guardar Cambios</button>
             <a asp-action="Index" class="boton-volver">Volver</a>

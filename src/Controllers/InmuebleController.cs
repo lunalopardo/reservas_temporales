@@ -27,6 +27,7 @@ namespace ReservasTemporales.Controllers
 
             var query = _context.Inmuebles
                 .Include(i => i.Propietario)
+                .Include(i => i.Reservas)
                 .Where(i => i.Activo);
 
             if (!string.IsNullOrEmpty(buscar))
@@ -38,9 +39,10 @@ namespace ReservasTemporales.Controllers
                 {
                     var t = termino;
                     query = query.Where(i => i.Direccion.Contains(t) ||
-                                             i.Propietario!.Nombre.Contains(t) ||
-                                             i.Propietario!.Apellido.Contains(t) ||
-                                             (i.Propietario!.Nombre + " " + i.Propietario!.Apellido).Contains(t));
+                                            i.Tipo.ToString().Contains(t) ||
+                                            i.Propietario!.Nombre.Contains(t) ||
+                                            i.Propietario!.Apellido.Contains(t) ||
+                                            (i.Propietario!.Nombre + " " + i.Propietario!.Apellido).Contains(t));
                 }
             }
 
@@ -68,6 +70,7 @@ namespace ReservasTemporales.Controllers
 
             var inmueble = await _context.Inmuebles
                 .Include(i => i.Propietario)
+                .Include(i => i.Reservas)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (inmueble == null) return NotFound();
@@ -75,7 +78,7 @@ namespace ReservasTemporales.Controllers
             return View(inmueble);
         }
 
-         // GET: Inmuebles/Create
+        // GET: Inmuebles/Create
         public async Task<IActionResult> Create()
         {
             await CargarPropietariosSelectAsync();
