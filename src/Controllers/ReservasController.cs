@@ -431,80 +431,80 @@ namespace ReservasTemporales.Controllers
         }
 
 
-      
-// ============================================================
-// GET: Reservas/FechasOcupadas
-// Devuelve las reservas de otros
-// y la reserva actual si estamos editando
-// ============================================================
 
-[HttpGet]
-public async Task<IActionResult> FechasOcupadas(
-    int idInmueble,
-    int? idReserva = null)
-{
-    // ========================================================
-    // RESERVAS DE OTRAS RESERVAS
-    // ========================================================
+        // ============================================================
+        // GET: Reservas/FechasOcupadas
+        // Devuelve las reservas de otros
+        // y la reserva actual si estamos editando
+        // ============================================================
 
-    var reservasOtras = await _context.Reservas
-        .Where(r =>
-            r.IdInmueble == idInmueble &&
-            r.Activo &&
-            (!idReserva.HasValue ||
-             r.Id != idReserva.Value)
-        )
-        .Select(r => new
+        [HttpGet]
+        public async Task<IActionResult> FechasOcupadas(
+            int idInmueble,
+            int? idReserva = null)
         {
-            fechaDesde =
-                r.FechaDesde.ToString("yyyy-MM-dd"),
+            // ========================================================
+            // RESERVAS DE OTRAS RESERVAS
+            // ========================================================
 
-            fechaHasta =
-                r.FechaHasta.ToString("yyyy-MM-dd")
-        })
-        .ToListAsync();
+            var reservasOtras = await _context.Reservas
+                .Where(r =>
+                    r.IdInmueble == idInmueble &&
+                    r.Activo &&
+                    (!idReserva.HasValue ||
+                     r.Id != idReserva.Value)
+                )
+                .Select(r => new
+                {
+                    fechaDesde =
+                        r.FechaDesde.ToString("yyyy-MM-dd"),
+
+                    fechaHasta =
+                        r.FechaHasta.ToString("yyyy-MM-dd")
+                })
+                .ToListAsync();
 
 
-    // ========================================================
-    // RESERVA ACTUAL
-    // ========================================================
+            // ========================================================
+            // RESERVA ACTUAL
+            // ========================================================
 
-    object? reservaActual = null;
+            object? reservaActual = null;
 
-    if (idReserva.HasValue)
-    {
-        reservaActual = await _context.Reservas
-            .Where(r =>
-                r.Id == idReserva.Value &&
-                r.IdInmueble == idInmueble &&
-                r.Activo
-            )
-            .Select(r => new
+            if (idReserva.HasValue)
             {
-                fechaDesde =
-                    r.FechaDesde.ToString("yyyy-MM-dd"),
+                reservaActual = await _context.Reservas
+                    .Where(r =>
+                        r.Id == idReserva.Value &&
+                        r.IdInmueble == idInmueble &&
+                        r.Activo
+                    )
+                    .Select(r => new
+                    {
+                        fechaDesde =
+                            r.FechaDesde.ToString("yyyy-MM-dd"),
 
-                fechaHasta =
-                    r.FechaHasta.ToString("yyyy-MM-dd")
-            })
-            .FirstOrDefaultAsync();
-    }
-
-
-    // ========================================================
-    // DEVOLVER DATOS A JAVASCRIPT
-    // ========================================================
-
-    return Json(new
-    {
-        reservasOtras,
-        reservaActual
-    });
-}
+                        fechaHasta =
+                            r.FechaHasta.ToString("yyyy-MM-dd")
+                    })
+                    .FirstOrDefaultAsync();
+            }
 
 
+            // ========================================================
+            // DEVOLVER DATOS A JAVASCRIPT
+            // ========================================================
 
-        
+            return Json(new
+            {
+                reservasOtras,
+                reservaActual
+            });
+        }
+
+
+
+
 
         // ============================================================
         // METODOS AUXILIARES
@@ -521,13 +521,16 @@ public async Task<IActionResult> FechasOcupadas(
         // CARGAR INMUEBLES
         // ============================================================
 
-        private async Task CargarInmueblesAsync(
-            object? seleccionado = null)
+        private async Task CargarInmueblesAsync(object? seleccionado = null)
         {
-            var inmuebles = await _context.Inmuebles
-                .Where(i => i.Activo && i.EstaDisponibleHoy)
+            var inmueblesDb = await _context.Inmuebles
+                .Where(i => i.Activo)
                 .OrderBy(i => i.Direccion)
                 .ToListAsync();
+
+            var inmuebles = inmueblesDb
+                .Where(i => i.EstaDisponibleHoy)
+                .ToList();
 
             ViewBag.IdInmueble = new SelectList(
                 inmuebles,
