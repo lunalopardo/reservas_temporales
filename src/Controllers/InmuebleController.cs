@@ -30,20 +30,22 @@ namespace ReservasTemporales.Controllers
                 .Include(i => i.Reservas)
                 .Where(i => i.Activo);
 
-            if (!string.IsNullOrEmpty(buscar))
+            if (!string.IsNullOrWhiteSpace(buscar))
             {
-                buscar = buscar.Trim();
-                var terminos = buscar.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string term = buscar.Trim();
 
-                foreach (var termino in terminos)
-                {
-                    var t = termino;
-                    query = query.Where(i => i.Direccion.Contains(t) ||
-                                            i.Tipo.ToString().Contains(t) ||
-                                            i.Propietario!.Nombre.Contains(t) ||
-                                            i.Propietario!.Apellido.Contains(t) ||
-                                            (i.Propietario!.Nombre + " " + i.Propietario!.Apellido).Contains(t));
-                }
+                bool esTipoValido = Enum.TryParse<TipoInmueble>(term, true, out var tipoBuscado);
+
+                query = query.Where(i =>
+                    i.Direccion.Contains(term) ||
+
+                    (esTipoValido && i.Tipo == tipoBuscado) ||
+
+                    i.Propietario.Nombre.Contains(term) ||
+                    i.Propietario.Apellido.Contains(term) ||
+
+                    string.Concat(i.Propietario.Nombre, " ", i.Propietario.Apellido).Contains(term)
+                );
             }
 
             int totalRegistros = await query.CountAsync();
