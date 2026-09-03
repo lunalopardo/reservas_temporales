@@ -12,14 +12,17 @@
 
 ---
 
-## 📦 Entrega 1: Alcance del Proyecto
+## 📦 Alcance del Proyecto y Funcionalidades al día de hoy
 
-Para esta primera entrega, el sistema cuenta con la implementación de manejo de Propietarios e Inquilinos.
+El sistema es una solución integral para la gestión de alquileres temporales..
 
-### 📌 Lo entregado:
-* **Diseño e implementación de la Base de Datos**: Estructura relacional creada e integrada mediante MySQL.
-* **Módulos ABM completos**: Funcionalidades de Alta, Baja, Modificación y Lectura para Propietarios e Inquilinos.
-* **Interfaz de Usuario (Vistas MVC)**: Vistas dinámicas para listados, formularios de creación/edición y pantallas de confirmación de eliminación.
+### 📌 Módulos e Implementaciones:
+* **Diseño e Integración de Base de Datos**: Estructura relacional desarrollada con Entity Framework Core / MySQL para Propietarios, Inquilinos, Inmuebles y Reservas.
+* **Módulos CRUD / ABM Completo**:
+  * **Propietarios e Inquilinos**: Registro, actualización y gestión de estados/bajas lógicas.
+  * **Inmuebles**: Alta con fotos/detalles, precio por día y estado de disponibilidad.
+  * **Reservas**: Control de rangos de fechas, ingreso automático del precio diario del inmueble y validación de superposición de fechas.
+* **Interfaz de Usuario (ASP.NET Core MVC)**: Vistas dinámicas, modales de confirmación, responsive design y hojas de estilo personalizadas para cada flujo del sistema.
 
 ---
 
