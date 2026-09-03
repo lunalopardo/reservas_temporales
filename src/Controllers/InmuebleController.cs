@@ -126,7 +126,7 @@ namespace ReservasTemporales.Controllers
                 // Procesar Portada
                 if (archivoPortada != null && archivoPortada.Length > 0)
                 {
-                    inmueble.FotoPortada = await ImagenesHelper.ProcesarImagenToBase64Async(archivoPortada);
+                    inmueble.Foto_portada = await ImagenesHelper.ProcesarImagenToBase64Async(archivoPortada);
                 }
 
                 // Procesar Galería (concatenando con '|')
@@ -173,11 +173,11 @@ namespace ReservasTemporales.Controllers
                     // Actualizar Portada solo si se adjuntó un nuevo archivo
                     if (archivoPortada != null && archivoPortada.Length > 0)
                     {
-                        inmueble.FotoPortada = await ImagenesHelper.ProcesarImagenToBase64Async(archivoPortada);
+                        inmueble.Foto_portada = await ImagenesHelper.ProcesarImagenToBase64Async(archivoPortada);
                     }
                     else
                     {
-                        inmueble.FotoPortada = inmuebleExistente.FotoPortada;
+                        inmueble.Foto_portada = inmuebleExistente.Foto_portada;
                     }
 
                     // Actualizar Galería solo si se subieron nuevas fotos

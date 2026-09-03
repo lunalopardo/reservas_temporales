@@ -137,7 +137,7 @@ namespace ReservasTemporales.Data
                     Cupo = 4,
                     Coord = "-34.6037,-58.3816",
                     Precio = 45000.00m,
-                    FotoPortada = null,
+                    Foto_portada = null,
                     Fotos = null,
                     Activo = true
                 },
@@ -150,7 +150,7 @@ namespace ReservasTemporales.Data
                     Cupo = 6,
                     Coord = "-34.9214,-57.9545",
                     Precio = 75000.00m,
-                    FotoPortada = null,
+                    Foto_portada = null,
                     Fotos = null,
                     Activo = true
                 },
@@ -163,7 +163,7 @@ namespace ReservasTemporales.Data
                     Cupo = 5,
                     Coord = "-41.1335,-71.3103",
                     Precio = 120000.00m,
-                    FotoPortada = null,
+                    Foto_portada = null,
                     Fotos = null,
                     Activo = true
                 }
