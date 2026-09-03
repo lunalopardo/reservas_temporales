@@ -240,7 +240,7 @@ function configurarCalendario(calendario) {
         "disable",
         [
 
-            function(fecha) {
+            function (fecha) {
 
                 // ------------------------------------------------
                 // MI reserva NO se bloquea
@@ -271,7 +271,7 @@ function configurarCalendario(calendario) {
         "onDayCreate",
         [
 
-            function(
+            function (
                 dObj,
                 dStr,
                 fp,
@@ -426,7 +426,7 @@ const calendarioDesde =
             // ====================================================
 
             onChange:
-                function(selectedDates) {
+                function (selectedDates) {
 
                     if (
                         selectedDates.length === 0
@@ -543,7 +543,7 @@ if (inmuebleSelect) {
 
     inmuebleSelect.addEventListener(
         "change",
-        async function() {
+        async function () {
 
             // ------------------------------------------------
             // Si cambia el inmueble,
@@ -749,6 +749,30 @@ async function inicializar() {
     actualizarCalendarios();
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const selectInmueble = document.getElementById("IdInmueble");
+    const inputMontoDiario = document.getElementById("MontoDiario");
+
+    if (selectInmueble && inputMontoDiario) {
+        selectInmueble.addEventListener("change", async function () {
+            const idInmueble = this.value;
+
+            if (!idInmueble) return;
+
+            try {
+                const response = await fetch(`/Reservas/ObtenerPrecioInmueble?id=${idInmueble}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.precio !== undefined) {
+                        inputMontoDiario.value = data.precio;
+                    }
+                }
+            } catch (error) {
+                console.error("Error al obtener el precio del inmueble:", error);
+            }
+        });
+    }
+});
 
 // ============================================================
 // EJECUTAR

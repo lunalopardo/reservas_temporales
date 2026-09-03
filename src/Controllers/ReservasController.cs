@@ -561,6 +561,23 @@ namespace ReservasTemporales.Controllers
                 seleccionado
             );
         }
+
+        // Traer precio de los inmuebles
+        [HttpGet]
+        public async Task<IActionResult> ObtenerPrecioInmueble(int id)
+        {
+            var inmueble = await _context.Inmuebles
+                .Where(i => i.Id == id && i.Activo)
+                .Select(i => new { i.Precio })
+                .FirstOrDefaultAsync();
+
+            if (inmueble == null)
+            {
+                return NotFound();
+            }
+
+            return Json(inmueble);
+        }
     }
 }
 
