@@ -3,15 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ReservasTemporales.Models
 {
-    public enum TipoInmueble
-    {
-        Casa,
-        Departamento,
-        Cabaña,
-        Habitacion,
-        Otro
-    }
-
     [Table("Inmueble")]
     public class Inmueble
     {
@@ -29,8 +20,11 @@ namespace ReservasTemporales.Models
 
         [Required(ErrorMessage = "Seleccione el tipo de inmueble.")]
         [Display(Name = "Tipo de Inmueble")]
-        [Column("tipo")]
-        public TipoInmueble Tipo { get; set; }
+        [Column("id_tipo_inmueble")]
+        [ForeignKey("TipoInmueble")]
+        public int IdTipoInmueble { get; set; }
+
+        public virtual TipoInmueble? TipoInmueble { get; set; }
 
         [Required(ErrorMessage = "La dirección es obligatoria.")]
         [StringLength(200, MinimumLength = 5, ErrorMessage = "La dirección debe tener entre 5 y 200 caracteres.")]
@@ -56,12 +50,10 @@ namespace ReservasTemporales.Models
         [Display(Name = "Precio por día")]
         public decimal Precio { get; set; }
 
-        // Mapeo a LONGTEXT para soportar Data URLs de Base64
         [Column("foto_portada", TypeName = "longtext")]
         [Display(Name = "Foto de Portada")]
         public string? Foto_portada { get; set; }
 
-        // Strings concatenados con '|' tipo LONGTEXT
         [Column("fotos", TypeName = "longtext")]
         [Display(Name = "Galería de Fotos")]
         public string? Fotos { get; set; }
@@ -70,22 +62,18 @@ namespace ReservasTemporales.Models
         [Display(Name = "Inmueble Activo")]
         public bool Activo { get; set; } = true;
 
-        // Propiedad de navegación hacia sus Reservas
         public virtual ICollection<Reserva> Reservas { get; set; } = new List<Reserva>();
 
-        // Propiedad calculada para ver el estado del inmueble HOY (y actualizar la tabla de inm según reservas)
         [NotMapped]
         [Display(Name = "Disponible Hoy")]
         public bool EstaDisponibleHoy
         {
             get
             {
-                // Si está dado de baja manualmente, no está disponible
                 if (!Activo) return false;
 
                 var hoy = DateTime.Today;
 
-                // Verificamos si existe alguna reserva activa que ocupe la fecha de hoy
                 bool estaOcupadoHoy = Reservas != null && Reservas.Any(r =>
                     r.Activo &&
                     r.FechaDesde.Date <= hoy &&

@@ -1,86 +1,50 @@
 @model ReservasTemporales.Models.Reserva
 
 @{
-ViewData["Title"] = "Detalles de la reserva";
+    ViewData["Title"] = "Detalles de la reserva";
 }
 
-<h1>Detalles de la reserva</h1>
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 
-<hr />
+<div class="formulario-contenedor">
+    <h2 class="titulo-vista">Detalles de la reserva</h2>
+    <hr />
 
-<dl class="row">
+    <dl class="row">
+        <dt class="col-sm-3">Código</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
 
-<dt class="col-sm-3">
-    Codigo
-</dt>
-<dd class="col-sm-9">
-    @Model.Id
-</dd>
+        <dt class="col-sm-3">Inmueble</dt>
+        <dd class="col-sm-9">@Model.Inmueble?.Direccion</dd>
 
-<dt class="col-sm-3">
-    Inmueble
-</dt>
-<dd class="col-sm-9">
-    @Model.Inmueble?.Direccion
-</dd>
+        <dt class="col-sm-3">Inquilino</dt>
+        <dd class="col-sm-9">@Model.Inquilino?.Nombre @Model.Inquilino?.Apellido</dd>
 
-<dt class="col-sm-3">
-    Inquilino
-</dt>
-<dd class="col-sm-9">
-    @Model.Inquilino?.Nombre @Model.Inquilino?.Apellido
-</dd>
+        <dt class="col-sm-3">Fecha de inicio</dt>
+        <dd class="col-sm-9">@Model.FechaDesde.ToString("dd/MM/yyyy")</dd>
 
-<dt class="col-sm-3">
-    Fecha de inicio
-</dt>
-<dd class="col-sm-9">
-    @Model.FechaDesde.ToString("dd/MM/yyyy")
-</dd>
+        <dt class="col-sm-3">Fecha de finalización</dt>
+        <dd class="col-sm-9">@Model.FechaHasta.ToString("dd/MM/yyyy")</dd>
 
-<dt class="col-sm-3">
-    Fecha de finalizacion
-</dt>
-<dd class="col-sm-9">
-    @Model.FechaHasta.ToString("dd/MM/yyyy")
-</dd>
+        <dt class="col-sm-3">Monto diario</dt>
+        <dd class="col-sm-9">$ @Model.MontoDiario.ToString("N2")</dd>
 
-<dt class="col-sm-3">
-    Monto diario
-</dt>
-<dd class="col-sm-9">
-    $ @Model.MontoDiario.ToString("N2")
-</dd>
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+            @if (Model.Activo)
+            {
+                <span class="badge bg-success">Activa</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Inactiva</span>
+            }
+        </dd>
+    </dl>
 
-<dt class="col-sm-3">
-    Estado
-</dt>
-<dd class="col-sm-9">
-    @if (Model.Activo)
-    {
-        <span class="badge bg-success">Activa</span>
-    }
-    else
-    {
-        <span class="badge bg-secondary">Inactiva</span>
-    }
-</dd>
-
-
-</dl>
-
-<div>
-    <a asp-action="Edit"
-       asp-route-id="@Model.Id"
-       class="btn btn-primary">
-        Editar
-    </a>
-
-
-<a asp-action="Index"
-   class="btn btn-secondary">
-    Volver al listado
-</a>
-
-
+    <div class="acciones mt-3">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="boton-guardar">Editar</a>
+        <a asp-action="Index" class="boton-volver">Volver al listado</a>
+    </div>
 </div>

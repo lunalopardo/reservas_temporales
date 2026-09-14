@@ -1,68 +1,44 @@
 @model ReservasTemporales.Models.Reserva
 
 @{
-ViewData["Title"] = "Eliminar reserva";
+    ViewData["Title"] = "Eliminar reserva";
 }
 
-<h1>Eliminar reserva</h1>
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 
-<h3>¿Esta seguro que desea eliminar esta reserva?</h3>
+<div class="formulario-contenedor">
+    <h2 class="titulo-vista">Eliminar Reserva</h2>
+    <p class="text-danger fw-bold mb-3">¿Está seguro de que desea eliminar esta reserva?</p>
+    <hr />
 
-<hr />
+    <dl class="row">
+        <dt class="col-sm-3">Código</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
 
-<dl class="row">
+        <dt class="col-sm-3">Inmueble</dt>
+        <dd class="col-sm-9">@Model.Inmueble?.Direccion</dd>
 
+        <dt class="col-sm-3">Inquilino</dt>
+        <dd class="col-sm-9">@Model.Inquilino?.Nombre @Model.Inquilino?.Apellido</dd>
 
-<dt class="col-sm-3">
-    Inmueble
-</dt>
-<dd class="col-sm-9">
-    @Model.Inmueble?.Direccion
-</dd>
+        <dt class="col-sm-3">Fecha de inicio</dt>
+        <dd class="col-sm-9">@Model.FechaDesde.ToString("dd/MM/yyyy")</dd>
 
-<dt class="col-sm-3">
-    Inquilino
-</dt>
-<dd class="col-sm-9">
-    @Model.Inquilino?.Nombre @Model.Inquilino?.Apellido
-</dd>
+        <dt class="col-sm-3">Fecha de finalización</dt>
+        <dd class="col-sm-9">@Model.FechaHasta.ToString("dd/MM/yyyy")</dd>
 
-<dt class="col-sm-3">
-    Fecha desde
-</dt>
-<dd class="col-sm-9">
-    @Model.FechaDesde.ToString("dd/MM/yyyy")
-</dd>
+        <dt class="col-sm-3">Monto diario</dt>
+        <dd class="col-sm-9">$ @Model.MontoDiario.ToString("N2")</dd>
+    </dl>
 
-<dt class="col-sm-3">
-    Fecha hasta
-</dt>
-<dd class="col-sm-9">
-    @Model.FechaHasta.ToString("dd/MM/yyyy")
-</dd>
+    <form asp-action="Delete" method="post" class="mt-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
 
-<dt class="col-sm-3">
-    Monto diario
-</dt>
-<dd class="col-sm-9">
-    $ @Model.MontoDiario.ToString("N2")
-</dd>
-
-
-</dl>
-
-<form asp-action="Delete" method="post">
-
-
-<input type="hidden" asp-for="Id" />
-
-<button type="submit" class="btn btn-danger">
-    Si, eliminar
-</button>
-
-<a asp-action="Index" class="btn btn-secondary">
-    Cancelar
-</a>
-
-
-</form>
+        <div class="acciones">
+            <button type="submit" class="boton-guardar" style="background-color: #dc3545; border-color: #dc3545;">Sí, eliminar</button>
+            <a asp-action="Index" class="boton-volver">Cancelar</a>
+        </div>
+    </form>
+</div>

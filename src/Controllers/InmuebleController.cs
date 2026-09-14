@@ -1,62 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ReservasTemporales.Data;
 using ReservasTemporales.Models;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
+using ReservasTemporales.Repositories;
 
 namespace ReservasTemporales.Controllers
 {
     public class InmueblesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly RepositorioInmueble _repositorioInmueble;
+        private readonly RepositorioPropietario _repositorioPropietario;
+        private readonly RepositorioTipoInmueble _repositorioTipoInmueble;
 
-        public InmueblesController(ApplicationDbContext context)
+        public InmueblesController(
+            RepositorioInmueble repositorioInmueble,
+            RepositorioPropietario repositorioPropietario,
+            RepositorioTipoInmueble repositorioTipoInmueble)
         {
-            _context = context;
+            _repositorioInmueble = repositorioInmueble;
+            _repositorioPropietario = repositorioPropietario;
+            _repositorioTipoInmueble = repositorioTipoInmueble;
         }
 
-        #region GET Actions
-
-        // GET: Inmuebles
-        public async Task<IActionResult> Index(string buscar, int pagina = 1)
+        // Listar (con paginado)
+        public IActionResult Index(string? buscar, int pagina = 1)
         {
-            int registrosPorPagina = 5;
+            int tamanoPagina = 5;
 
-            var query = _context.Inmuebles
-                .Include(i => i.Propietario)
-                .Include(i => i.Reservas)
-                .Where(i => i.Activo);
-
-            if (!string.IsNullOrWhiteSpace(buscar))
-            {
-                string term = buscar.Trim();
-
-                bool esTipoValido = Enum.TryParse<TipoInmueble>(term, true, out var tipoBuscado);
-
-                query = query.Where(i =>
-                    i.Direccion.Contains(term) ||
-
-                    (esTipoValido && i.Tipo == tipoBuscado) ||
-
-                    i.Propietario.Nombre.Contains(term) ||
-                    i.Propietario.Apellido.Contains(term) ||
-
-                    string.Concat(i.Propietario.Nombre, " ", i.Propietario.Apellido).Contains(term)
-                );
-            }
-
-            int totalRegistros = await query.CountAsync();
-            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
-
-            pagina = Math.Max(1, Math.Min(pagina, totalPaginas > 0 ? totalPaginas : 1));
-
-            var listado = await query
-                .Skip((pagina - 1) * registrosPorPagina)
-                .Take(registrosPorPagina)
-                .ToListAsync();
+            var (listado, totalPaginas) = _repositorioInmueble.GetPaginado(buscar, pagina, tamanoPagina);
 
             ViewData["FiltroActual"] = buscar;
             ViewData["PaginaActual"] = pagina;
@@ -65,234 +35,122 @@ namespace ReservasTemporales.Controllers
             return View(listado);
         }
 
-        // GET: Inmuebles/id
-        public async Task<IActionResult> Details(int? id)
+        // Detalle de un inmueble
+        public IActionResult Details(int id)
         {
-            if (id == null) return NotFound();
-
-            var inmueble = await _context.Inmuebles
-                .Include(i => i.Propietario)
-                .Include(i => i.Reservas)
-                .FirstOrDefaultAsync(i => i.Id == id);
-
+            var inmueble = _repositorioInmueble.GetById(id);
             if (inmueble == null) return NotFound();
-
             return View(inmueble);
         }
 
-        // GET: Inmuebles/Create
-        public async Task<IActionResult> Create()
+        // Crear
+        public IActionResult Create()
         {
-            await CargarPropietariosSelectAsync();
+            CargarSelects();
             return View();
         }
 
-        // GET: Inmuebles/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var inmueble = await _context.Inmuebles.FindAsync(id);
-
-            if (inmueble == null) return NotFound();
-
-            await CargarPropietariosSelectAsync(inmueble.IdPropietario);
-            return View(inmueble);
-        }
-
-        // GET: Inmuebles/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var inmueble = await _context.Inmuebles
-                .Include(i => i.Propietario)
-                .FirstOrDefaultAsync(i => i.Id == id);
-
-            if (inmueble == null) return NotFound();
-
-            return View(inmueble);
-        }
-
-        #endregion
-
-        #region POST Actions
-
-        // POST: Inmuebles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Inmueble inmueble, IFormFile? archivoPortada, List<IFormFile>? archivosGaleria)
         {
             if (ModelState.IsValid)
             {
-                // Procesar Portada
                 if (archivoPortada != null && archivoPortada.Length > 0)
                 {
-                    inmueble.Foto_portada = await ImagenesHelper.ProcesarImagenToBase64Async(archivoPortada);
+                    inmueble.Foto_portada = await ImagenesController.ProcessBase64Async(archivoPortada);
                 }
 
-                // Procesar Galería (concatenando con '|')
                 if (archivosGaleria != null && archivosGaleria.Any())
                 {
-                    var listaBase64 = new List<string>();
+                    var fotosBase64 = new List<string>();
                     foreach (var foto in archivosGaleria)
                     {
-                        if (foto.Length > 0)
-                        {
-                            string base64 = await ImagenesHelper.ProcesarImagenToBase64Async(foto);
-                            if (!string.IsNullOrEmpty(base64))
-                                listaBase64.Add(base64);
-                        }
+                        var b64 = await ImagenesController.ProcessBase64Async(foto);
+                        if (!string.IsNullOrEmpty(b64)) fotosBase64.Add(b64);
                     }
-                    inmueble.Fotos = string.Join("|", listaBase64);
+                    inmueble.Fotos = string.Join("|", fotosBase64);
                 }
 
-                _context.Add(inmueble);
-                await _context.SaveChangesAsync();
-
+                _repositorioInmueble.Create(inmueble);
                 return RedirectToAction(nameof(Index));
             }
 
-            await CargarPropietariosSelectAsync(inmueble.IdPropietario);
+            CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
             return View(inmueble);
         }
 
-        // POST: Inmuebles/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Inmueble inmueble, IFormFile? archivoPortada, List<IFormFile>? archivosGaleria)
+        // Editar
+        public IActionResult Edit(int id)
         {
-            if (id != inmueble.Id) return NotFound();
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    // Obtener la entidad existente de la BD para no perder las imágenes si no se suben nuevas
-                    var inmuebleExistente = await _context.Inmuebles.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
-                    if (inmuebleExistente == null) return NotFound();
-
-                    // Actualizar Portada solo si se adjuntó un nuevo archivo
-                    if (archivoPortada != null && archivoPortada.Length > 0)
-                    {
-                        inmueble.Foto_portada = await ImagenesHelper.ProcesarImagenToBase64Async(archivoPortada);
-                    }
-                    else
-                    {
-                        inmueble.Foto_portada = inmuebleExistente.Foto_portada;
-                    }
-
-                    // Actualizar Galería solo si se subieron nuevas fotos
-                    if (archivosGaleria != null && archivosGaleria.Any(f => f.Length > 0))
-                    {
-                        var listaBase64 = new List<string>();
-                        foreach (var foto in archivosGaleria)
-                        {
-                            if (foto.Length > 0)
-                            {
-                                string base64 = await ImagenesHelper.ProcesarImagenToBase64Async(foto);
-                                if (!string.IsNullOrEmpty(base64))
-                                    listaBase64.Add(base64);
-                            }
-                        }
-                        inmueble.Fotos = string.Join("|", listaBase64);
-                    }
-                    else
-                    {
-                        inmueble.Fotos = inmuebleExistente.Fotos;
-                    }
-
-                    _context.Update(inmueble);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!InmuebleExists(inmueble.Id)) return NotFound();
-                    throw;
-                }
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            await CargarPropietariosSelectAsync(inmueble.IdPropietario);
-            return View(inmueble);
-        }
-
-        // POST: Inmuebles/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var inmueble = await _context.Inmuebles.FindAsync(id);
-
+            var inmueble = _repositorioInmueble.GetById(id);
             if (inmueble == null) return NotFound();
 
-            inmueble.Activo = false; // Baja lógica
-            await _context.SaveChangesAsync();
+            CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
+            return View(inmueble);
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Inmueble inmueble, IFormFile? archivoPortada, List<IFormFile>? archivosGaleria)
+        {
+            if (ModelState.IsValid)
+            {
+                var inmuebleExistente = _repositorioInmueble.GetById(inmueble.Id);
+                if (inmuebleExistente == null) return NotFound();
+
+                // Mantener o reemplazar portada
+                if (archivoPortada != null && archivoPortada.Length > 0)
+                {
+                    inmueble.Foto_portada = await ImagenesController.ProcessBase64Async(archivoPortada);
+                }
+                else
+                {
+                    inmueble.Foto_portada = inmuebleExistente.Foto_portada;
+                }
+
+                // Mantener galería actual y concatenar nuevas
+                var listaFotos = string.IsNullOrEmpty(inmuebleExistente.Fotos)
+                    ? new List<string>()
+                    : inmuebleExistente.Fotos.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                if (archivosGaleria != null && archivosGaleria.Any())
+                {
+                    foreach (var foto in archivosGaleria)
+                    {
+                        var b64 = await ImagenesController.ProcessBase64Async(foto);
+                        if (!string.IsNullOrEmpty(b64)) listaFotos.Add(b64);
+                    }
+                }
+                inmueble.Fotos = string.Join("|", listaFotos);
+
+                _repositorioInmueble.Update(inmueble);
+                return RedirectToAction(nameof(Index));
+            }
+
+            CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
+            return View(inmueble);
+        }
+
+        // Eliminar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            _repositorioInmueble.DeleteLogico(id);
             return RedirectToAction(nameof(Index));
         }
 
-        #endregion
-
-        #region Private Helpers
-
-        private bool InmuebleExists(int id)
+        // Método auxiliar para llenar los select
+        private void CargarSelects(object? propietarioSel = null, object? tipoSel = null)
         {
-            return _context.Inmuebles.Any(e => e.Id == id);
+            var propietarios = _repositorioPropietario.GetActivos()
+                .Select(p => new { p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" });
+
+            ViewBag.IdPropietario = new SelectList(propietarios, "IdPropietario", "NombreCompleto", propietarioSel);
+
+            var tipos = _repositorioTipoInmueble.GetAll();
+            ViewBag.IdTipoInmueble = new SelectList(tipos, "Id", "Nombre", tipoSel);
         }
-
-        private async Task CargarPropietariosSelectAsync(object? seleccionado = null)
-        {
-            var propietarios = await _context.Propietarios
-                .Where(p => p.Activo)
-                .Select(p => new
-                {
-                    IdPropietario = p.IdPropietario,
-                    NombreCompleto = $"{p.Nombre} {p.Apellido}"
-                })
-                .ToListAsync();
-
-            ViewBag.IdPropietario = new SelectList(propietarios, "IdPropietario", "NombreCompleto", seleccionado);
-        }
-
-        #endregion
-
-        #region Helper de Imágenes
-
-        public static class ImagenesHelper
-        {
-            private const int MAX_ANCHO = 1200;
-
-            public static async Task<string> ProcesarImagenToBase64Async(IFormFile archivo)
-            {
-                if (archivo == null || archivo.Length == 0)
-                    return string.Empty;
-
-                using var inputStream = archivo.OpenReadStream();
-                using var image = await Image.LoadAsync(inputStream);
-
-                if (image.Width > MAX_ANCHO)
-                {
-                    int nuevoAlto = (int)Math.Round((double)(image.Height * MAX_ANCHO) / image.Width);
-                    image.Mutate(x => x.Resize(MAX_ANCHO, nuevoAlto));
-                }
-
-                var encoder = new JpegEncoder
-                {
-                    Quality = 80
-                };
-
-                using var outputStream = new MemoryStream();
-                await image.SaveAsync(outputStream, encoder);
-
-                byte[] bytesProcesados = outputStream.ToArray();
-                string base64String = Convert.ToBase64String(bytesProcesados);
-
-                return $"data:image/jpeg;base64,{base64String}";
-            }
-        }
-
-        #endregion
     }
 }

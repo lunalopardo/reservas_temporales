@@ -56,7 +56,7 @@
     <div class="tarjeta-cuerpo">
         <p><strong>Dirección:</strong> @Model.Direccion</p>
         <p><strong>Propietario:</strong> @($"{Model.Propietario?.Nombre} {Model.Propietario?.Apellido}")</p>
-        <p><strong>Tipo de Inmueble:</strong> @Model.Tipo</p>
+        <p><strong>Tipo de Inmueble:</strong> @Model.TipoInmueble?.Nombre</p>
         <p><strong>Cupo de Personas:</strong> @Model.Cupo personas</p>
         <p><strong>Precio por día:</strong> $@Model.Precio.ToString("N2")</p>
         <p><strong>Coordenadas GPS:</strong> @(string.IsNullOrEmpty(Model.Coord) ? "No especificadas" : Model.Coord)</p>

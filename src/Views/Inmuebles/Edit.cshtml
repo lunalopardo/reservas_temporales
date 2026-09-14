@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Editar Inmueble";
+    var galeriaFotos = string.IsNullOrEmpty(Model.Fotos)
+        ? new List<string>()
+        : Model.Fotos.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList();
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -12,57 +15,94 @@
 
     <form asp-action="Edit" enctype="multipart/form-data" method="post">
         @Html.AntiForgeryToken()
-        
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Activo" />
 
         <div class="campo">
             <label asp-for="IdPropietario">Propietario</label>
-            <select asp-for="IdPropietario" asp-items="ViewBag.IdPropietario"></select>
+            <select asp-for="IdPropietario" class="form-control" asp-items="ViewBag.IdPropietario">
+                <option value="">-- Seleccione un propietario --</option>
+            </select>
             <span asp-validation-for="IdPropietario" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
-            <label asp-for="Tipo">Tipo de Inmueble</label>
-            <select asp-for="Tipo" asp-items="Html.GetEnumSelectList<ReservasTemporales.Models.TipoInmueble>()"></select>
-            <span asp-validation-for="Tipo" class="mensaje-error"></span>
+            <label asp-for="IdTipoInmueble">Tipo de Inmueble</label>
+            <select asp-for="IdTipoInmueble" class="form-control" asp-items="ViewBag.IdTipoInmueble">
+                <option value="">-- Seleccione Tipo --</option>
+            </select>
+            <span asp-validation-for="IdTipoInmueble" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Direccion">Dirección</label>
-            <input asp-for="Direccion" />
+            <input asp-for="Direccion" class="form-control" />
             <span asp-validation-for="Direccion" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Cupo">Cupo de Personas</label>
-            <input asp-for="Cupo" type="number" />
+            <input asp-for="Cupo" type="number" class="form-control" />
             <span asp-validation-for="Cupo" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Coord">Coordenadas GPS</label>
-            <input asp-for="Coord" />
+            <input asp-for="Coord" class="form-control" />
             <span asp-validation-for="Coord" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Precio">Precio por Día</label>
-            <input asp-for="Precio" type="number" step="0.01" />
+            <input asp-for="Precio" type="number" step="0.01" class="form-control" />
             <span asp-validation-for="Precio" class="mensaje-error"></span>
         </div>
 
+        <!-- Portada actual y opción de subida -->
         <div class="campo">
-            <label>Actualizar Foto de Portada</label>
-            <input type="file" name="archivoPortada" accept="image/*" />
+            <label>Foto de Portada</label>
+            @if (!string.IsNullOrEmpty(Model.Foto_portada))
+            {
+                <div class="contenedor-preview">
+                    <img src="@Model.Foto_portada" class="imagen-preview" alt="Portada Actual" />
+                    <button type="submit" 
+                            asp-controller="Imagenes" 
+                            asp-action="Eliminar" 
+                            asp-route-idInmueble="@Model.Id" 
+                            asp-route-tipoFoto="portada" 
+                            class="btn-eliminar-foto" 
+                            title="Eliminar portada">&times;</button>
+                </div>
+            }
+            <input type="file" name="archivoPortada" accept="image/*" class="form-control" />
         </div>
 
+        <!-- Galería actual y opción de subida -->
         <div class="campo">
-            <label>Agregar/Reemplazar Galería de Fotos</label>
-            <input type="file" name="archivosGaleria" accept="image/*" multiple />
+            <label>Galería de Fotos</label>
+            @if (galeriaFotos.Any())
+            {
+                <div class="grid-previews">
+                    @for (int i = 0; i < galeriaFotos.Count; i++)
+                    {
+                        <div class="contenedor-preview">
+                            <img src="@galeriaFotos[i]" class="imagen-preview" alt="Foto @i" />
+                            <button type="submit" 
+                                    asp-controller="Imagenes" 
+                                    asp-action="Eliminar" 
+                                    asp-route-idInmueble="@Model.Id" 
+                                    asp-route-tipoFoto="galeria" 
+                                    asp-route-posicion="@i" 
+                                    class="btn-eliminar-foto" 
+                                    title="Eliminar esta foto">&times;</button>
+                        </div>
+                    }
+                </div>
+            }
+            <input type="file" name="archivosGaleria" accept="image/*" multiple class="form-control" />
         </div>
 
-        <div class="acciones">
+        <div class="acciones mt-4">
             <button type="submit" class="boton-guardar">Guardar Cambios</button>
             <a asp-action="Index" class="boton-volver">Volver</a>
         </div>
@@ -70,7 +110,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

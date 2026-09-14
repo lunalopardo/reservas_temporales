@@ -488,3 +488,50 @@ main[role="main"],
 .container {
     flex: 1 0 auto !important;
 }
+
+/* Previsualización y botón para eliminar fotos */
+.grid-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.contenedor-preview {
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ccc;
+}
+
+.imagen-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-eliminar-foto {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: rgba(220, 53, 69, 0.85);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.btn-eliminar-foto:hover {
+    background-color: rgba(200, 35, 51, 1);
+}

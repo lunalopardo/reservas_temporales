@@ -1,386 +1,144 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ReservasTemporales.Data;
 using ReservasTemporales.Models;
+using ReservasTemporales.Repositories;
 
 namespace ReservasTemporales.Controllers
 {
     public class ReservasController : Controller
     {
-        // ============================================================
-        // CONEXION CON LA BASE DE DATOS
-        // ============================================================
+        private readonly RepositorioReserva _repositorioReserva;
 
-        private readonly ApplicationDbContext _context;
-
-        public ReservasController(ApplicationDbContext context)
+        public ReservasController(IConfiguration configuration)
         {
-            _context = context;
+            _repositorioReserva = new RepositorioReserva(configuration);
         }
 
-
-        // ============================================================
         // GET: Reservas
-        // Muestra el listado de reservas activas
-        // ============================================================
-
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var reservas = await _context.Reservas
-                .Include(r => r.Inmueble)
-                .Include(r => r.Inquilino)
-                .Include(r => r.CreadoPorUsuario)
-                .Include(r => r.TerminadoPorUsuario)
-                .Where(r => r.Activo)
-                .ToListAsync();
-
+            var reservas = _repositorioReserva.GetAllActivas();
             return View(reservas);
         }
 
-
-        // ============================================================
         // GET: Reservas/Details/5
-        // Muestra los detalles de una reserva
-        // ============================================================
-
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var reserva = await _context.Reservas
-                .Include(r => r.Inmueble)
-                .Include(r => r.Inquilino)
-                .Include(r => r.CreadoPorUsuario)
-                .Include(r => r.TerminadoPorUsuario)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
+            var reserva = _repositorioReserva.GetById(id);
             if (reserva == null)
             {
                 return NotFound();
             }
-
             return View(reserva);
         }
 
-
-        // ============================================================
         // GET: Reservas/Create
-        // ============================================================
-
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
-            await CargarInmueblesAsync();
-            await CargarInquilinosAsync();
-
+            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion");
+            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto");
             return View();
         }
 
-
-        // ============================================================
         // POST: Reservas/Create
-        // ============================================================
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Reserva reserva)
+        public IActionResult Create(Reserva reserva)
         {
-            // ========================================================
-            // 1. VALIDAR FECHAS
-            // ========================================================
+            // Asignamos el ID del usuario por defecto hasta que hagamos autenticación
+            reserva.CreadoPorUserId = 1;
 
-            if (reserva.FechaDesde.Date < DateTime.Today)
+            ModelState.Remove(nameof(reserva.CreadoPorUserId));
+
+            var errores = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errores)
             {
-                ModelState.AddModelError(
-                    "FechaDesde",
-                    "La fecha de inicio no puede ser anterior a la fecha actual."
-                );
+                Console.WriteLine("ERROR DE MODELO: " + error.ErrorMessage);
             }
 
-            if (reserva.FechaDesde.Date >= reserva.FechaHasta.Date)
+            if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.FechaDesde, reserva.FechaHasta))
             {
-                ModelState.AddModelError(
-                    "FechaHasta",
-                    "La fecha de finalizacion debe ser posterior a la fecha de inicio."
-                );
+                ModelState.AddModelError("", "Ya existe una reserva activa para este inmueble en el rango de fechas seleccionado.");
             }
 
-
-            // ========================================================
-            // 2. BUSCAR INMUEBLE
-            // ========================================================
-
-            var inmueble = await _context.Inmuebles
-                .FirstOrDefaultAsync(i => i.Id == reserva.IdInmueble);
-
-            if (inmueble == null)
+            if (reserva.FechaDesde >= reserva.FechaHasta)
             {
-                ModelState.AddModelError(
-                    "IdInmueble",
-                    "El inmueble seleccionado no existe."
-                );
+                ModelState.AddModelError("FechaHasta", "La fecha de fin debe ser posterior a la fecha de inicio.");
             }
-            else
-            {
-                // ====================================================
-                // 3. VERIFICAR DISPONIBILIDAD
-                // ====================================================
-
-                if (!inmueble.EstaDisponibleHoy || !inmueble.Activo)
-                {
-                    ModelState.AddModelError(
-                        "IdInmueble",
-                        "El inmueble no esta disponible para reservar."
-                    );
-                }
-
-
-                // ====================================================
-                // 4. VERIFICAR SUPERPOSICION
-                // ====================================================
-
-                bool existeSuperposicion = await _context.Reservas
-                    .AnyAsync(r =>
-                        r.IdInmueble == reserva.IdInmueble &&
-                        r.Activo &&
-                        r.FechaDesde < reserva.FechaHasta &&
-                        r.FechaHasta > reserva.FechaDesde
-                    );
-
-                if (existeSuperposicion)
-                {
-                    ModelState.AddModelError(
-                        "FechaDesde",
-                        "El inmueble no esta disponible para las fechas seleccionadas."
-                    );
-                }
-            }
-
-
-            // ========================================================
-            // 5. GUARDAR RESERVA
-            // ========================================================
 
             if (ModelState.IsValid)
             {
-                // Por ahora usamos el usuario administrador con Id = 1.
-                reserva.CreadoPorUserId = 1;
-
-                // La reserva comienza activa.
-                reserva.Activo = true;
-
-                _context.Reservas.Add(reserva);
-
-                await _context.SaveChangesAsync();
-
-
-                // ====================================================
-                // MENSAJE DE EXITO
-                // ====================================================
-
-                TempData["Mensaje"] =
-                    "Reserva agregada correctamente.";
-
-                TempData["TipoMensaje"] =
-                    "exito";
-
-
+                _repositorioReserva.Create(reserva);
+                TempData["Success"] = "La reserva fue creada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
 
-
-            // ========================================================
-            // 6. SI HAY ERRORES, RECARGAR LOS SELECT
-            // ========================================================
-
-            await CargarInmueblesAsync(reserva.IdInmueble);
-            await CargarInquilinosAsync(reserva.IdInquilino);
-
+            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion", reserva.IdInmueble);
+            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto", reserva.IdInquilino);
             return View(reserva);
         }
 
-
-        // ============================================================
         // GET: Reservas/Edit/5
-        // ============================================================
-
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var reserva = await _context.Reservas
-                .FirstOrDefaultAsync(r => r.Id == id);
-
+            var reserva = _repositorioReserva.GetById(id);
             if (reserva == null)
             {
                 return NotFound();
             }
 
-            await CargarInmueblesAsync(reserva.IdInmueble);
-            await CargarInquilinosAsync(reserva.IdInquilino);
-
+            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion", reserva.IdInmueble);
+            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto", reserva.IdInquilino);
             return View(reserva);
         }
 
-
-        // ============================================================
         // POST: Reservas/Edit/5
-        // ============================================================
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Reserva reserva)
+        public IActionResult Edit(int id, Reserva reserva)
         {
-            // ========================================================
-            // 1. VERIFICAR ID
-            // ========================================================
-
             if (id != reserva.Id)
             {
                 return NotFound();
             }
 
-
-            // ========================================================
-            // 2. OBTENER RESERVA ORIGINAL
-            // ========================================================
-
-            var reservaOriginal = await _context.Reservas
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (reservaOriginal == null)
+            if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.FechaDesde, reserva.FechaHasta, reserva.Id))
             {
-                return NotFound();
+                ModelState.AddModelError("", "Ya existe otra reserva activa para este inmueble en el rango de fechas seleccionado.");
             }
 
-
-            // ========================================================
-            // 3. VALIDAR FECHAS
-            // ========================================================
-
-            if (reserva.FechaDesde.Date < DateTime.Today)
+            if (reserva.FechaDesde >= reserva.FechaHasta)
             {
-                ModelState.AddModelError(
-                    "FechaDesde",
-                    "La fecha de inicio no puede ser anterior a la fecha actual."
-                );
+                ModelState.AddModelError("FechaHasta", "La fecha de fin debe ser posterior a la fecha de inicio.");
             }
-
-            if (reserva.FechaDesde.Date >= reserva.FechaHasta.Date)
-            {
-                ModelState.AddModelError(
-                    "FechaHasta",
-                    "La fecha de finalizacion debe ser posterior a la fecha de inicio."
-                );
-            }
-
-
-            // ========================================================
-            // 4. VERIFICAR SUPERPOSICION
-            // ========================================================
-
-            bool existeSuperposicion = await _context.Reservas
-                .AnyAsync(r =>
-                    r.Id != reserva.Id &&
-                    r.IdInmueble == reserva.IdInmueble &&
-                    r.Activo &&
-                    r.FechaDesde < reserva.FechaHasta &&
-                    r.FechaHasta > reserva.FechaDesde
-                );
-
-            if (existeSuperposicion)
-            {
-                ModelState.AddModelError(
-                    "FechaDesde",
-                    "El inmueble no esta disponible para las fechas seleccionadas."
-                );
-            }
-
-
-            // ========================================================
-            // 5. GUARDAR CAMBIOS
-            // ========================================================
 
             if (ModelState.IsValid)
             {
-                // Conservamos el usuario que creo originalmente
-                // la reserva.
-
-                reserva.CreadoPorUserId =
-                    reservaOriginal.CreadoPorUserId;
-
-                // Conservamos el estado de la reserva.
-
-                reserva.Activo =
-                    reservaOriginal.Activo;
-
                 try
                 {
-                    _context.Reservas.Update(reserva);
-
-                    await _context.SaveChangesAsync();
-
-
-                    // ====================================================
-                    // MENSAJE DE EXITO
-                    // ====================================================
-
-                    TempData["Mensaje"] =
-                        "Reserva modificada correctamente.";
-
-                    TempData["TipoMensaje"] =
-                        "exito";
+                    _repositorioReserva.Update(reserva);
+                    TempData["Success"] = "La reserva fue actualizada correctamente.";
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception)
                 {
-                    if (!ReservaExists(reserva.Id))
+                    if (!_repositorioReserva.Exists(reserva.Id))
                     {
                         return NotFound();
                     }
-
                     throw;
                 }
-
                 return RedirectToAction(nameof(Index));
             }
 
-
-            // ========================================================
-            // 6. SI HAY ERRORES, RECARGAR LOS SELECT
-            // ========================================================
-
-            await CargarInmueblesAsync(reserva.IdInmueble);
-            await CargarInquilinosAsync(reserva.IdInquilino);
-
+            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion", reserva.IdInmueble);
+            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto", reserva.IdInquilino);
             return View(reserva);
         }
 
-
-        // ============================================================
         // GET: Reservas/Delete/5
-        // ============================================================
-
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var reserva = await _context.Reservas
-                .Include(r => r.Inmueble)
-                .Include(r => r.Inquilino)
-                .Include(r => r.CreadoPorUsuario)
-                .Include(r => r.TerminadoPorUsuario)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
+            var reserva = _repositorioReserva.GetById(id);
             if (reserva == null)
             {
                 return NotFound();
@@ -389,195 +147,32 @@ namespace ReservasTemporales.Controllers
             return View(reserva);
         }
 
-
-        // ============================================================
-        // POST: Reservas/Delete
-        // Baja logica
-        // ============================================================
-
+        // POST: Reservas/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var reserva = await _context.Reservas
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (reserva == null)
-            {
-                return NotFound();
-            }
-
-            // Baja logica
-            reserva.Activo = false;
-
-            // Por ahora usamos el usuario administrador.
-            reserva.TerminadoPorUserId = 1;
-
-            await _context.SaveChangesAsync();
-
-
-            // ========================================================
-            // MENSAJE DE EXITO
-            // ========================================================
-
-            TempData["Mensaje"] =
-                "Reserva eliminada correctamente.";
-
-            TempData["TipoMensaje"] =
-                "exito";
-
-
+            _repositorioReserva.DeleteLogico(id);
+            TempData["Success"] = "La reserva fue cancelada (borrado lógico) correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
-
-
-        // ============================================================
-        // GET: Reservas/FechasOcupadas
-        // Devuelve las reservas de otros
-        // y la reserva actual si estamos editando
-        // ============================================================
-
         [HttpGet]
-        public async Task<IActionResult> FechasOcupadas(
-            int idInmueble,
-            int? idReserva = null)
+        public IActionResult GetPrecioInmueble(int id)
         {
-            // ========================================================
-            // RESERVAS DE OTRAS RESERVAS
-            // ========================================================
-
-            var reservasOtras = await _context.Reservas
-                .Where(r =>
-                    r.IdInmueble == idInmueble &&
-                    r.Activo &&
-                    (!idReserva.HasValue ||
-                     r.Id != idReserva.Value)
-                )
-                .Select(r => new
-                {
-                    fechaDesde =
-                        r.FechaDesde.ToString("yyyy-MM-dd"),
-
-                    fechaHasta =
-                        r.FechaHasta.ToString("yyyy-MM-dd")
-                })
-                .ToListAsync();
-
-
-            // ========================================================
-            // RESERVA ACTUAL
-            // ========================================================
-
-            object? reservaActual = null;
-
-            if (idReserva.HasValue)
-            {
-                reservaActual = await _context.Reservas
-                    .Where(r =>
-                        r.Id == idReserva.Value &&
-                        r.IdInmueble == idInmueble &&
-                        r.Activo
-                    )
-                    .Select(r => new
-                    {
-                        fechaDesde =
-                            r.FechaDesde.ToString("yyyy-MM-dd"),
-
-                        fechaHasta =
-                            r.FechaHasta.ToString("yyyy-MM-dd")
-                    })
-                    .FirstOrDefaultAsync();
-            }
-
-
-            // ========================================================
-            // DEVOLVER DATOS A JAVASCRIPT
-            // ========================================================
-
-            return Json(new
-            {
-                reservasOtras,
-                reservaActual
-            });
-        }
-
-
-
-
-
-        // ============================================================
-        // METODOS AUXILIARES
-        // ============================================================
-
-        private bool ReservaExists(int id)
-        {
-            return _context.Reservas
-                .Any(r => r.Id == id);
-        }
-
-
-        // ============================================================
-        // CARGAR INMUEBLES
-        // ============================================================
-
-        private async Task CargarInmueblesAsync(object? seleccionado = null)
-        {
-            var inmueblesDb = await _context.Inmuebles
-                .Where(i => i.Activo)
-                .OrderBy(i => i.Direccion)
-                .ToListAsync();
-
-            var inmuebles = inmueblesDb
-                .Where(i => i.EstaDisponibleHoy)
-                .ToList();
-
-            ViewBag.IdInmueble = new SelectList(
-                inmuebles,
-                "Id",
-                "Direccion",
-                seleccionado
-            );
-        }
-
-
-        // ============================================================
-        // CARGAR INQUILINOS
-        // ============================================================
-
-        private async Task CargarInquilinosAsync(
-            object? seleccionado = null)
-        {
-            var inquilinos = await _context.Inquilinos
-                .Where(i => i.Activo)
-                .OrderBy(i => i.Apellido)
-                .ThenBy(i => i.Nombre)
-                .ToListAsync();
-
-            ViewBag.IdInquilino = new SelectList(
-                inquilinos,
-                "IdInquilino",
-                "Nombre",
-                seleccionado
-            );
-        }
-
-        // Traer precio de los inmuebles
-        [HttpGet]
-        public async Task<IActionResult> ObtenerPrecioInmueble(int id)
-        {
-            var inmueble = await _context.Inmuebles
-                .Where(i => i.Id == id && i.Activo)
-                .Select(i => new { i.Precio })
-                .FirstOrDefaultAsync();
-
-            if (inmueble == null)
+            var precio = _repositorioReserva.GetPrecioInmueble(id);
+            if (precio == null)
             {
                 return NotFound();
             }
+            return Json(new { precio = precio.Value });
+        }
 
-            return Json(inmueble);
+        [HttpGet]
+        public IActionResult GetFechasReservadas(int idInmueble)
+        {
+            var fechas = _repositorioReserva.ObtenerFechasReservadasPorInmueble(idInmueble);
+            return Json(fechas);
         }
     }
 }
-

@@ -63,7 +63,7 @@
                         <td>
                             @($"{item.Propietario?.Nombre} {item.Propietario?.Apellido}")
                         </td>
-                        <td>@item.Tipo</td>
+                        <td>@item.TipoInmueble?.Nombre</td>
                         <td>@item.Direccion</td>
                         <td>@item.Cupo pers.</td>
                         <td>$@item.Precio.ToString("N2")</td>

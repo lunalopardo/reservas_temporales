@@ -1,200 +1,179 @@
 @model ReservasTemporales.Models.Reserva
 
 @{
-ViewData["Title"] = "Editar reserva";
+    ViewData["Title"] = "Editar reserva";
 }
 
-<link rel="stylesheet" href="~/css/formularios.css" /> <link rel="stylesheet" href="~/css/site.css" />
-
-<!-- Flatpickr -->
-
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 
 <div class="formulario-contenedor">
+    <h2 class="titulo-vista">Editar Reserva</h2>
 
-<h2 class="titulo-vista">Editar Reserva</h2>
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
 
-<form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" id="IdReserva" />
 
-    @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="mensaje-error"></div>
 
-    <!-- ID DE LA RESERVA -->
-    <input type="hidden"
-           asp-for="Id"
-           id="IdReserva" />
+        <div class="campo">
+            <label asp-for="IdInmueble">Inmueble</label>
+            <select asp-for="IdInmueble" asp-items="ViewBag.IdInmueble" id="IdInmueble">
+                <option value="">Seleccione un inmueble</option>
+            </select>
+            <span asp-validation-for="IdInmueble" class="mensaje-error"></span>
+        </div>
 
+        <div class="campo">
+            <label asp-for="IdInquilino">Inquilino</label>
+            <select asp-for="IdInquilino" asp-items="ViewBag.IdInquilino">
+                <option value="">Seleccione un inquilino</option>
+            </select>
+            <span asp-validation-for="IdInquilino" class="mensaje-error"></span>
+        </div>
 
-    <!-- ERRORES GENERALES -->
+        <div class="campo">
+            <label asp-for="FechaDesde">Fecha de inicio</label>
+            <input asp-for="FechaDesde" type="text" id="fechaDesde" value="@Model.FechaDesde.ToString("yyyy-MM-dd")" placeholder="Selecciona la fecha de inicio" autocomplete="off" />
+            
+            <div class="calendario-ayuda">
+                <span>
+                    <span class="indicador disponible"></span>
+                    Disponible
+                </span>
+                <span>
+                    <span class="indicador ocupado"></span>
+                    Reservado
+                </span>
+            </div>
+            <span asp-validation-for="FechaDesde" class="mensaje-error"></span>
+        </div>
 
-    <div asp-validation-summary="ModelOnly"
-         class="mensaje-error">
-    </div>
+        <div class="campo">
+            <label asp-for="FechaHasta">Fecha de finalización</label>
+            <input asp-for="FechaHasta" type="text" id="fechaHasta" value="@Model.FechaHasta.ToString("yyyy-MM-dd")" placeholder="Selecciona la fecha de finalización" autocomplete="off" />
+            <span asp-validation-for="FechaHasta" class="mensaje-error"></span>
+        </div>
 
+        <div class="campo">
+            <label asp-for="MontoDiario">Monto diario</label>
+            <input asp-for="MontoDiario" type="number" step="0.01" min="0.01" id="montoDiarioInput" />
+            <span asp-validation-for="MontoDiario" class="mensaje-error"></span>
+        </div>
 
-    <!-- INMUEBLE -->
-
-    <div class="campo">
-
-        <label asp-for="IdInmueble">
-            Inmueble
-        </label>
-
-        <select asp-for="IdInmueble"
-                asp-items="ViewBag.IdInmueble"
-                id="IdInmueble">
-
-            <option value="">
-                Seleccione un inmueble
-            </option>
-
-        </select>
-
-        <span asp-validation-for="IdInmueble"
-              class="mensaje-error">
-        </span>
-
-    </div>
-
-
-    <!-- INQUILINO -->
-
-    <div class="campo">
-
-        <label asp-for="IdInquilino">
-            Inquilino
-        </label>
-
-        <select asp-for="IdInquilino"
-                asp-items="ViewBag.IdInquilino">
-
-            <option value="">
-                Seleccione un inquilino
-            </option>
-
-        </select>
-
-        <span asp-validation-for="IdInquilino"
-              class="mensaje-error">
-        </span>
-
-    </div>
-
-
-    <!-- FECHA DESDE -->
-
-    <div class="campo">
-
-        <label asp-for="FechaDesde">
-            Fecha de inicio
-        </label>
-
-        <input asp-for="FechaDesde"
-       type="text"
-       id="fechaDesde"
-       value="@Model.FechaDesde.ToString("yyyy-MM-dd")"
-       placeholder="Selecciona la fecha de inicio"
-       autocomplete="off" />
-
-        <div class="calendario-ayuda">
-
-    <span>
-        <span class="indicador disponible"></span>
-        Disponible
-    </span>
-
-    <span>
-        <span class="indicador ocupado"></span>
-        No disponible
-    </span>
-
-    <span>
-        <span class="indicador reserva-actual"></span>
-        Mi reserva
-    </span>
-
-</div>
-
-        <span asp-validation-for="FechaDesde"
-              class="mensaje-error">
-        </span>
-
-    </div>
-
-
-    <!-- FECHA HASTA -->
-
-    <div class="campo">
-
-        <label asp-for="FechaHasta">
-            Fecha de finalizacion
-        </label>
-
-        <input asp-for="FechaHasta"
-       type="text"
-       id="fechaHasta"
-       value="@Model.FechaHasta.ToString("yyyy-MM-dd")"
-       placeholder="Selecciona la fecha de finalizacion"
-       autocomplete="off" />
-
-        <span asp-validation-for="FechaHasta"
-              class="mensaje-error">
-        </span>
-
-    </div>
-
-
-    <!-- MONTO DIARIO -->
-
-    <div class="campo">
-
-        <label asp-for="MontoDiario">
-            Monto diario
-        </label>
-
-        <input asp-for="MontoDiario"
-               type="number"
-               step="0.01"
-               min="0.01" />
-
-        <span asp-validation-for="MontoDiario"
-              class="mensaje-error">
-        </span>
-
-    </div>
-
-
-    <!-- BOTONES -->
-
-    <div class="acciones">
-
-        <button type="submit"
-                class="boton-guardar">
-            Guardar cambios
-        </button>
-
-        <a asp-action="Index"
-           class="boton-volver">
-            Cancelar
-        </a>
-
-    </div>
-
-</form>
-
+        <div class="acciones">
+            <button type="submit" class="boton-guardar">Guardar cambios</button>
+            <a asp-action="Index" class="boton-volver">Cancelar</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 
-@{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
-}
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
-<!-- Flatpickr -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let fechasOcupadasSet = new Set();
+            const idReservaActual = document.getElementById("IdReserva") ? document.getElementById("IdReserva").value : 0;
 
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+            const pickerDesde = flatpickr("#fechaDesde", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    let anio = dayElem.dateObj.getFullYear();
+                    let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
+                    let dia = String(dayElem.dateObj.getDate()).padStart(2, '0');
+                    let fechaIso = `${anio}-${mes}-${dia}`;
 
-<!-- JavaScript de reservas -->
-<script src="~/js/reservas.js"></script>
+                    if (fechasOcupadasSet.has(fechaIso)) {
+                        dayElem.classList.add("ocupado");
+                    }
+                }
+            });
 
+            const pickerHasta = flatpickr("#fechaHasta", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    let anio = dayElem.dateObj.getFullYear();
+                    let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
+                    let dia = String(dayElem.dateObj.getDate()).padStart(2, '0');
+                    let fechaIso = `${anio}-${mes}-${dia}`;
+
+                    if (fechasOcupadasSet.has(fechaIso)) {
+                        dayElem.classList.add("ocupado");
+                    }
+                }
+            });
+
+            const selectInmueble = document.getElementById("IdInmueble");
+            const inputMonto = document.getElementById("montoDiarioInput");
+
+            function cargarDatosInmueble(idInmueble) {
+                if (!idInmueble) return;
+
+                if (!inputMonto.value || inputMonto.value == "0" || inputMonto.value == "0.00") {
+                    fetch(`/Reservas/GetPrecioInmueble?id=${idInmueble}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.precio) {
+                                inputMonto.value = data.precio;
+                            }
+                        })
+                        .catch(error => console.error("Error al obtener precio:", error));
+                }
+
+                fetch(`/Reservas/GetFechasReservadas?idInmueble=${idInmueble}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        fechasOcupadasSet.clear();
+                        let rangosADeshabilitar = [];
+
+                        data.forEach(rango => {
+                            if (idReservaActual && rango.id && rango.id == idReservaActual) return;
+
+                            let fDesdeStr = rango.fechaDesde.split('T')[0];
+                            let fHastaStr = rango.fechaHasta.split('T')[0];
+
+                            rangosADeshabilitar.push({ from: fDesdeStr, to: fHastaStr });
+
+                            let currDate = new Date(fDesdeStr + 'T00:00:00');
+                            let endDate = new Date(fHastaStr + 'T00:00:00');
+
+                            while(currDate <= endDate) {
+                                let anio = currDate.getFullYear();
+                                let mes = String(currDate.getMonth() + 1).padStart(2, '0');
+                                let dia = String(currDate.getDate()).padStart(2, '0');
+                                fechasOcupadasSet.add(`${anio}-${mes}-${dia}`);
+                                currDate.setDate(currDate.getDate() + 1);
+                            }
+                        });
+
+                        pickerDesde.set("disable", rangosADeshabilitar);
+                        pickerHasta.set("disable", rangosADeshabilitar);
+                        pickerDesde.redraw();
+                        pickerHasta.redraw();
+                    })
+                    .catch(error => console.error("Error al obtener fechas:", error));
+            }
+
+            selectInmueble.addEventListener("change", function () {
+                cargarDatosInmueble(this.value);
+            });
+
+            if (selectInmueble.value) {
+                cargarDatosInmueble(selectInmueble.value);
+            }
+        });
+    </script>
 }

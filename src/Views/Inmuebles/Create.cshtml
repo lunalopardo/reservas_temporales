@@ -15,55 +15,55 @@
 
         <div class="campo">
             <label asp-for="IdPropietario">Propietario</label>
-            <select asp-for="IdPropietario" asp-items="ViewBag.IdPropietario">
+            <select asp-for="IdPropietario" class="form-control" asp-items="ViewBag.IdPropietario">
                 <option value="">-- Seleccione un propietario --</option>
             </select>
             <span asp-validation-for="IdPropietario" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
-            <label asp-for="Tipo">Tipo de Inmueble</label>
-            <select asp-for="Tipo" asp-items="Html.GetEnumSelectList<ReservasTemporales.Models.TipoInmueble>()">
-                <option value="">-- Seleccione el tipo --</option>
+            <label asp-for="IdTipoInmueble">Tipo de Inmueble</label>
+            <select asp-for="IdTipoInmueble" class="form-control" asp-items="ViewBag.IdTipoInmueble">
+                <option value="">-- Seleccione Tipo --</option>
             </select>
-            <span asp-validation-for="Tipo" class="mensaje-error"></span>
+            <span asp-validation-for="IdTipoInmueble" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Direccion">Dirección</label>
-            <input asp-for="Direccion" />
+            <input asp-for="Direccion" class="form-control" />
             <span asp-validation-for="Direccion" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Cupo">Cupo de Personas</label>
-            <input asp-for="Cupo" type="number" />
+            <input asp-for="Cupo" type="number" class="form-control" />
             <span asp-validation-for="Cupo" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Coord">Coordenadas GPS</label>
-            <input asp-for="Coord" placeholder="Ej: -34.6037, -58.3816" />
+            <input asp-for="Coord" class="form-control" placeholder="Ej: -34.6037, -58.3816" />
             <span asp-validation-for="Coord" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="Precio">Precio por Día</label>
-            <input asp-for="Precio" type="number" step="0.01" />
+            <input asp-for="Precio" type="number" step="0.01" class="form-control" />
             <span asp-validation-for="Precio" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label>Foto de Portada</label>
-            <input type="file" name="archivoPortada" accept="image/*" />
+            <input type="file" name="archivoPortada" accept="image/*" class="form-control" />
         </div>
 
         <div class="campo">
             <label>Galería de Fotos</label>
-            <input type="file" name="archivosGaleria" accept="image/*" multiple />
+            <input type="file" name="archivosGaleria" accept="image/*" multiple class="form-control" />
         </div>
 
-        <div class="acciones">
+        <div class="acciones mt-4">
             <button type="submit" class="boton-guardar">Guardar</button>
             <a asp-action="Index" class="boton-volver">Volver</a>
         </div>

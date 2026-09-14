@@ -1,15 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using ReservasTemporales.Data;
+using ReservasTemporales.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
+builder.Services.AddScoped<RepositorioInquilino>();
+builder.Services.AddScoped<RepositorioPropietario>();
+builder.Services.AddScoped<RepositorioTipoInmueble>();
+builder.Services.AddScoped<RepositorioInmueble>();
+builder.Services.AddTransient<RepositorioReserva>();
 
 var app = builder.Build();
 
@@ -31,12 +31,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    // Asegura que la BD exista y aplica seeders automáticos
-    context.Database.EnsureCreated();
-}
 
 app.Run();

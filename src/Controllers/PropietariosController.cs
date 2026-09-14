@@ -1,47 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ReservasTemporales.Data;
 using ReservasTemporales.Models;
+using ReservasTemporales.Repositories;
 
 namespace ReservasTemporales.Controllers
 {
-    public class PropietariosController : Controller
+    public class PropietariosController(RepositorioPropietario repo) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public PropietariosController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: Propietarios
-        public async Task<IActionResult> Index(string buscar, int pagina = 1)
+        public IActionResult Index(string buscar, int pagina = 1)
         {
             int registrosPorPagina = 5;
+            var (listado, totalPaginas) = repo.GetPaginado(buscar, pagina, registrosPorPagina);
 
-            var query = _context.Propietarios.Where(p => p.Activo);
-
-            if (!string.IsNullOrEmpty(buscar))
-            {
-                buscar = buscar.Trim();
-                query = query.Where(p => p.Nombre.Contains(buscar) ||
-                                         p.Apellido.Contains(buscar) ||
-                                         p.Dni.Contains(buscar));
-            }
-
-            // paginado en el servidor
-            int totalRegistros = await query.CountAsync();
-            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
-
-            pagina = Math.Max(1, Math.Min(pagina, totalPaginas > 0 ? totalPaginas : 1));
-
-            var listado = await query
-                .Skip((pagina - 1) * registrosPorPagina)
-                .Take(registrosPorPagina)
-                .ToListAsync();
-
-            
-            // mapear datos a la Vista
             ViewData["FiltroActual"] = buscar;
             ViewData["PaginaActual"] = pagina;
             ViewData["TotalPaginas"] = totalPaginas;
@@ -50,154 +20,99 @@ namespace ReservasTemporales.Controllers
         }
 
         // GET: Propietarios/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var propietario = await _context.Propietarios
-                .FirstOrDefaultAsync(p => p.IdPropietario == id);
-
-            if (propietario == null)
-            {
-                return NotFound();
-            }
+            var propietario = repo.GetById(id.Value);
+            if (propietario == null) return NotFound();
 
             return View(propietario);
         }
 
         // GET: Propietarios/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         // POST: Propietarios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Propietario propietario)
+        public IActionResult Create(Propietario propietario)
         {
-            // para prevenir que se guarden dos personas con el mismo correo
-            if (await _context.Propietarios.AnyAsync(p => p.Email == propietario.Email))
+            if (repo.ExistsEmail(propietario.Email))
             {
                 ModelState.AddModelError("Email", "Este correo electrónico ya se encuentra registrado.");
             }
 
+            if (repo.ExistsDNI(propietario.Dni))
+            {
+                ModelState.AddModelError("Dni", "Este DNI ya se encuentra registrado.");
+            }
+
+
             if (ModelState.IsValid)
             {
-                _context.Add(propietario);
-                await _context.SaveChangesAsync();
+                repo.Create(propietario);
                 return RedirectToAction(nameof(Index));
             }
 
             return View(propietario);
         }
 
-        // GET: Propietarios/Edit
-        public async Task<IActionResult> Edit(int? id)
+        // GET: Propietarios/Edit/5
+        public IActionResult Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var propietario = await _context.Propietarios.FindAsync(id);
-
-            if (propietario == null)
-            {
-                return NotFound();
-            }
+            var propietario = repo.GetById(id.Value);
+            if (propietario == null) return NotFound();
 
             return View(propietario);
         }
 
-        // POST: Propietarios/Edit
+        // POST: Propietarios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
-            int id,
-            Propietario propietario)
+        public IActionResult Edit(int id, Propietario propietario)
         {
-            if (id != propietario.IdPropietario)
-            {
-                return NotFound();
-            }
+            if (id != propietario.IdPropietario) return NotFound();
 
-            // Validar si otro propietario distinto ya tiene este email
-            if (await _context.Propietarios.AnyAsync(p => p.Email == propietario.Email && p.IdPropietario != id))
+            if (repo.ExistsEmail(propietario.Email, id))
             {
                 ModelState.AddModelError("Email", "Este correo electrónico ya se encuentra registrado por otro propietario.");
             }
 
+            if (repo.ExistsDNI(propietario.Dni))
+            {
+                ModelState.AddModelError("Dni", "Este DNI ya se encuentra registrado.");
+            }
+
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(propietario);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PropietarioExists(propietario.IdPropietario))
-                    {
-                        return NotFound();
-                    }
-
-                    throw;
-                }
-
+                repo.Update(propietario);
                 return RedirectToAction(nameof(Index));
             }
 
             return View(propietario);
         }
 
-        // GET: Propietarios/Delete
-        public async Task<IActionResult> Delete(int? id)
+        // GET: Propietarios/Delete/5
+        public IActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var propietario = await _context.Propietarios
-                .FirstOrDefaultAsync(p => p.IdPropietario == id);
-
-            if (propietario == null)
-            {
-                return NotFound();
-            }
+            var propietario = repo.GetById(id.Value);
+            if (propietario == null) return NotFound();
 
             return View(propietario);
         }
 
-        // POST: Propietarios/Delete
+        // POST: Propietarios/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var propietario = await _context.Propietarios
-                .FindAsync(id);
-
-            if (propietario == null)
-            {
-                return NotFound();
-            }
-
-            // Baja lógica
-            propietario.Activo = false;
-
-            await _context.SaveChangesAsync();
-
+            repo.DeleteLogico(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool PropietarioExists(int id)
-        {
-            return _context.Propietarios
-                .Any(e => e.IdPropietario == id);
         }
     }
 }

@@ -44,5 +44,8 @@ namespace ReservasTemporales.Models
 
         [Column("activo")]
         public bool Activo { get; set; } = true;
+
+        // Propiedad calculada para mostrar el nombre completo en los selects
+        public string NombreCompleto => $"{Apellido}, {Nombre}";
     }
 }
