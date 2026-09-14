@@ -1,0 +1,220 @@
+@model IEnumerable<ReservasTemporales.Models.TipoInmueble>
+
+@{
+    ViewData["Title"] = "Tipos de Inmueble";
+    string filtroActual = ViewData["FiltroActual"] as string ?? "";
+    int paginaActual = (int)(ViewData["PaginaActual"] ?? 1);
+    int totalPaginas = (int)(ViewData["TotalPaginas"] ?? 1);
+}
+
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+<div class="formulario-contenedor" style="max-width: 550px !important; width: 100%;">
+    <div class="encabezado-tabla">
+        <h2>Tipos de Inmueble</h2>
+        <button type="button" class="boton-nuevo" data-bs-toggle="modal" data-bs-target="#modalCrear">
+            + Nuevo Tipo
+        </button>
+    </div>
+
+    <!-- Buscador -->
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="d-flex gap-2 align-items-center">
+            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda"
+                   placeholder="Buscar tipo de inmueble..." />
+            
+            <button type="submit" class="boton-buscar">
+                <span class="material-symbols-outlined">search</span>
+                <span>Buscar</span>
+            </button>
+
+            @if (!string.IsNullOrEmpty(filtroActual))
+            {
+                <a asp-action="Index" class="boton-limpiar">Limpiar</a>
+            }
+        </div>
+    </form>
+
+    <table class="tabla-datos">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre / Descripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="3" class="text-center py-3">No se encontraron resultados.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var tipo in Model)
+                {
+                    <tr>
+                        <td>@tipo.Id</td>
+                        <td>@tipo.Nombre</td>
+                        <td class="columna-acciones">
+                            <!-- Botón Editar (modal) -->
+                            <button type="button" class="boton-icono" title="Editar" data-bs-toggle="modal"
+                                    data-bs-target="#modalEditar" data-id="@tipo.Id" data-nombre="@tipo.Nombre">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+
+                            <!-- Botón Eliminar (modal) -->
+                            <button type="button" class="boton-icono boton-icono-eliminar" title="Borrar" data-bs-toggle="modal"
+                                    data-bs-target="#modalEliminar" data-id="@tipo.Id" data-nombre="@tipo.Nombre">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    @if (totalPaginas > 1)
+    {
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="paginacion-custom">
+                <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
+                       asp-route-buscar="@filtroActual">
+                        Anterior
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="pagina-item @(i == paginaActual ? "activo" : "")">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
+                       asp-route-buscar="@filtroActual">
+                        Siguiente
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Modal crear -->
+<div class="modal fade" id="modalCrear" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content formulario-contenedor border-0">
+            <h2 class="titulo-vista">Nuevo tipo de inmueble</h2>
+            
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="campo">
+                    <label for="Nombre">Nombre</label>
+                    <input type="text" name="Nombre" required />
+                </div>
+
+                <div class="acciones mt-4">
+                    <button type="submit" class="boton-guardar">Guardar</button>
+                    <button type="button" class="boton-volver" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal editar -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content formulario-contenedor border-0">
+            <h2 class="titulo-vista">Editar tipo de inmueble</h2>
+            
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="edit-id" name="Id" />
+
+                <div class="campo">
+                    <label for="edit-nombre">Nombre</label>
+                    <input type="text" id="edit-nombre" name="Nombre" required />
+                </div>
+
+                <div class="acciones mt-4">
+                    <button type="submit" class="boton-guardar">Guardar cambios</button>
+                    <button type="button" class="boton-volver" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal eliminar  -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content formulario-contenedor border-0">
+            <h2 class="titulo-vista">Eliminar tipo de inmueble</h2>
+
+            <p class="subtitulo-alerta">¿Estás seguro de que querés eliminar este registro?</p>
+
+            <div class="detalle-datos mb-3">
+                <p><strong>Código:</strong> <span id="delete-id-text"></span></p>
+                <p><strong>Nombre:</strong> <span id="delete-nombre-text"></span></p>
+            </div>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="delete-id" name="id" />
+
+                <div class="acciones mt-4">
+                    <button type="submit" class="boton-eliminar">Confirmar baja</button>
+                    <button type="button" class="boton-volver" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Cargar datos dinámicamente en los modales
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // Modal Editar
+            var modalEditar = document.getElementById('modalEditar');
+            modalEditar.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var nombre = button.getAttribute('data-nombre');
+
+                modalEditar.querySelector('#edit-id').value = id;
+                modalEditar.querySelector('#edit-nombre').value = nombre;
+            });
+
+            // Modal Eliminar
+            var modalEliminar = document.getElementById('modalEliminar');
+            modalEliminar.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var nombre = button.getAttribute('data-nombre');
+
+                modalEliminar.querySelector('#delete-id').value = id;
+                modalEliminar.querySelector('#delete-id-text').textContent = id;
+                modalEliminar.querySelector('#delete-nombre-text').textContent = nombre;
+            });
+        });
+    </script>
+}
