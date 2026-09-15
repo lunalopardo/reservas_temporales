@@ -7,50 +7,68 @@ public class RepositorioInquilino : RepositorioBase
 {
     public RepositorioInquilino(IConfiguration configuration) : base(configuration) { }
 
-    public (List<Inquilino> Listado, int TotalPaginas) GetPaginado(string? buscar, int pagina, int registrosPorPagina)
+    // Traemos la lista paginada 
+    public IList<Inquilino> GetPaginado(string? buscar = null, int paginaNro = 1, int tamPagina = 5)
     {
-        var listado = new List<Inquilino>();
-        int totalRegistros = 0;
+        IList<Inquilino> res = new List<Inquilino>();
+        int offset = Math.Max(0, (paginaNro - 1) * tamPagina);
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
 
-        using MySqlConnection connection = new(connectionString);
-        connection.Open();
-
-        var countQuery = @"SELECT COUNT(*) FROM Inquilino 
-                           WHERE activo = 1 
-                           AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)";
-
-        using (MySqlCommand countCommand = new(countQuery, connection))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
-            countCommand.Parameters.AddWithValue("@buscar", paramBuscar);
-            totalRegistros = Convert.ToInt32(countCommand.ExecuteScalar());
-        }
+            string sql = @"
+                SELECT * FROM Inquilino 
+                WHERE activo = 1 
+                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)
+                ORDER BY id
+                LIMIT @limit OFFSET @offset";
 
-        int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
-        int offset = (pagina - 1) * registrosPorPagina;
-
-        /*Aplica el mismo filtro de búsqueda y estado activo, pero agrega LIMIT (cuántos traer) y OFFSET (cuántos ignorar al principio) 
-        para traer solo la porción de datos correspondiente a la página solicitada.*/
-        var query = @"SELECT * FROM Inquilino 
-                      WHERE activo = 1 
-                      AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)
-                      LIMIT @limit OFFSET @offset";
-
-        using (MySqlCommand command = new(query, connection))
-        {
-            var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
-            command.Parameters.AddWithValue("@buscar", paramBuscar);
-            command.Parameters.AddWithValue("@limit", registrosPorPagina);
-            command.Parameters.AddWithValue("@offset", Math.Max(0, offset));
-
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
-                listado.Add(ParseInquilino(reader));
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+                command.Parameters.AddWithValue("@limit", tamPagina);
+                command.Parameters.AddWithValue("@offset", offset);
+
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        res.Add(ParseInquilino(reader));
+                    }
+                }
             }
         }
+        return res;
+    }
 
-        return (listado, totalPaginas);
+    // Traemos el total de registros activos filtrados
+    public int ObtenerCantidad(string? buscar = null)
+    {
+        int total = 0;
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"
+                SELECT COUNT(id) 
+                FROM Inquilino 
+                WHERE activo = 1 
+                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)";
+
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+
+                connection.Open();
+                var result = command.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    total = Convert.ToInt32(result);
+                }
+            }
+        }
+        return total;
     }
 
     //Obtener Inquilino por ID

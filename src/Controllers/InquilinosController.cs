@@ -10,7 +10,10 @@ namespace ReservasTemporales.Controllers
         public IActionResult Index(string buscar, int pagina = 1)
         {
             int registrosPorPagina = 5;
-            var (listado, totalPaginas) = repo.GetPaginado(buscar, pagina, registrosPorPagina);
+
+            var listado = repo.GetPaginado(buscar, pagina, registrosPorPagina);
+            int totalRegistros = repo.ObtenerCantidad(buscar);
+            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
 
             ViewData["FiltroActual"] = buscar;
             ViewData["PaginaActual"] = pagina;

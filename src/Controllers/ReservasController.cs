@@ -15,10 +15,20 @@ namespace ReservasTemporales.Controllers
         }
 
         // GET: Reservas
-        public IActionResult Index()
+        public IActionResult Index(string buscar, int pagina = 1)
         {
-            var reservas = _repositorioReserva.GetAllActivas();
-            return View(reservas);
+            int registrosPorPagina = 10;
+
+            var listado = _repositorioReserva.GetPaginado(buscar, pagina, registrosPorPagina);
+
+            int totalRegistros = _repositorioReserva.ObtenerCantidad(buscar);
+            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
+
+            ViewData["FiltroActual"] = buscar;
+            ViewData["PaginaActual"] = pagina;
+            ViewData["TotalPaginas"] = totalPaginas == 0 ? 1 : totalPaginas;
+
+            return View(listado);
         }
 
         // GET: Reservas/Details/5

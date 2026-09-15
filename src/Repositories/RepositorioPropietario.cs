@@ -31,50 +31,68 @@ public class RepositorioPropietario : RepositorioBase
         return listado;
     }
 
-    public (List<Propietario> Listado, int TotalPaginas) GetPaginado(string? buscar, int pagina, int registrosPorPagina)
+    public IList<Propietario> GetPaginado(string? buscar = null, int paginaNro = 1, int tamPagina = 5)
     {
-        var listado = new List<Propietario>();
-        int totalRegistros = 0;
+        IList<Propietario> res = new List<Propietario>();
+        int offset = Math.Max(0, (paginaNro - 1) * tamPagina);
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
 
-        using MySqlConnection connection = new(connectionString);
-        connection.Open();
-
-        // Obtener total de registros activos
-        var countQuery = @"SELECT COUNT(*) FROM Propietario 
-                           WHERE activo = 1 
-                           AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)";
-
-        using (MySqlCommand countCommand = new(countQuery, connection))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
-            countCommand.Parameters.AddWithValue("@buscar", paramBuscar);
-            totalRegistros = Convert.ToInt32(countCommand.ExecuteScalar());
-        }
+            string sql = @"
+                SELECT id, nombre, apellido, dni, telefono, email, activo 
+                FROM Propietario
+                WHERE activo = 1 
+                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)
+                ORDER BY id
+                LIMIT @limit OFFSET @offset";
 
-        int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
-        int offset = (pagina - 1) * registrosPorPagina;
-
-        // Obtener la página de registros
-        var query = @"SELECT * FROM Propietario 
-                      WHERE activo = 1 
-                      AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)
-                      LIMIT @limit OFFSET @offset";
-
-        using (MySqlCommand command = new(query, connection))
-        {
-            var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
-            command.Parameters.AddWithValue("@buscar", paramBuscar);
-            command.Parameters.AddWithValue("@limit", registrosPorPagina);
-            command.Parameters.AddWithValue("@offset", Math.Max(0, offset));
-
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
-                listado.Add(ParsePropietario(reader));
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+                command.Parameters.AddWithValue("@limit", tamPagina);
+                command.Parameters.AddWithValue("@offset", offset);
+
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        res.Add(ParsePropietario(reader));
+                    }
+                }
             }
         }
+        return res;
+    }
 
-        return (listado, totalPaginas);
+    // Trae el total de registros activos (aplicando el filtro de búsqueda si existe)
+    public int ObtenerCantidad(string? buscar = null)
+    {
+        int total = 0;
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"
+                SELECT COUNT(Id)
+                FROM Propietario
+                WHERE activo = 1
+                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)";
+
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+
+                connection.Open();
+                var result = command.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    total = Convert.ToInt32(result);
+                }
+            }
+        }
+        return total;
     }
 
     public Propietario? GetById(int id)

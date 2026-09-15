@@ -7,6 +7,81 @@ namespace ReservasTemporales.Repositories
     {
         public RepositorioReserva(IConfiguration configuration) : base(configuration) { }
 
+        public IList<Reserva> GetPaginado(string? buscar = null, int paginaNro = 1, int tamPagina = 10)
+        {
+            IList<Reserva> listado = new List<Reserva>();
+            int offset = Math.Max(0, (paginaNro - 1) * tamPagina);
+            var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"
+            SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, r.monto_diario, r.creado_por_user_id, r.terminado_por_user_id, r.activo,
+                   i.id AS inmueble_id, i.direccion AS inmueble_direccion, i.precio AS inmueble_precio, i.activo AS inmueble_activo,
+                   iq.id AS inquilino_id, iq.nombre AS inquilino_nombre, iq.apellido AS inquilino_apellido, iq.dni AS inquilino_dni, iq.email AS inquilino_email, iq.telefono AS inquilino_telefono, iq.activo AS inquilino_activo
+            FROM Reserva r
+            INNER JOIN Inmueble i ON r.id_inmueble = i.id
+            INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
+            WHERE r.activo = 1 
+              AND (@buscar IS NULL OR i.direccion LIKE @buscar 
+                                   OR iq.nombre LIKE @buscar 
+                                   OR iq.apellido LIKE @buscar 
+                                   OR iq.dni LIKE @buscar)
+            ORDER BY r.id DESC
+            LIMIT @limit OFFSET @offset";
+
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@buscar", paramBuscar);
+                    command.Parameters.AddWithValue("@limit", tamPagina);
+                    command.Parameters.AddWithValue("@offset", offset);
+
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            listado.Add(ParseReserva(reader));
+                        }
+                    }
+                }
+            }
+            return listado;
+        }
+
+        public int ObtenerCantidad(string? buscar = null)
+        {
+            int total = 0;
+            var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"
+            SELECT COUNT(r.id) 
+            FROM Reserva r
+            INNER JOIN Inmueble i ON r.id_inmueble = i.id
+            INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
+            WHERE r.activo = 1 
+              AND (@buscar IS NULL OR i.direccion LIKE @buscar 
+                                   OR iq.nombre LIKE @buscar 
+                                   OR iq.apellido LIKE @buscar 
+                                   OR iq.dni LIKE @buscar)";
+
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@buscar", paramBuscar);
+
+                    connection.Open();
+                    var result = command.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        total = Convert.ToInt32(result);
+                    }
+                }
+            }
+            return total;
+        }
+
         public List<Reserva> GetAllActivas()
         {
             var listado = new List<Reserva>();

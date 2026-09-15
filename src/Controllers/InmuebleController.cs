@@ -24,13 +24,16 @@ namespace ReservasTemporales.Controllers
         // Listar (con paginado)
         public IActionResult Index(string? buscar, int pagina = 1)
         {
-            int tamanoPagina = 5;
+            int registrosPorPagina = 10;
 
-            var (listado, totalPaginas) = _repositorioInmueble.GetPaginado(buscar, pagina, tamanoPagina);
+            var listado = _repositorioInmueble.GetPaginado(buscar, pagina, registrosPorPagina);
+
+            int totalRegistros = _repositorioInmueble.ObtenerCantidad(buscar);
+            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
 
             ViewData["FiltroActual"] = buscar;
             ViewData["PaginaActual"] = pagina;
-            ViewData["TotalPaginas"] = totalPaginas;
+            ViewData["TotalPaginas"] = totalPaginas == 0 ? 1 : totalPaginas;
 
             return View(listado);
         }

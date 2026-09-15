@@ -8,26 +8,26 @@ public class RepositorioTipoInmueble : RepositorioBase
     public RepositorioTipoInmueble(IConfiguration configuration) : base(configuration) { }
 
     public List<TipoInmueble> GetAll()
-{
-    var listado = new List<TipoInmueble>();
-    var query = "SELECT id, nombre FROM TipoInmueble";
-
-    using MySqlConnection connection = new(connectionString);
-    using MySqlCommand command = new(query, connection);
-    
-    connection.Open();
-    using MySqlDataReader reader = command.ExecuteReader();
-    while (reader.Read())
     {
-        listado.Add(new TipoInmueble
-        {
-            Id = reader.GetInt32("id"),
-            Nombre = reader.GetString("nombre")
-        });
-    }
+        var listado = new List<TipoInmueble>();
+        var query = "SELECT id, nombre FROM TipoInmueble";
 
-    return listado;
-}
+        using MySqlConnection connection = new(connectionString);
+        using MySqlCommand command = new(query, connection);
+
+        connection.Open();
+        using MySqlDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            listado.Add(new TipoInmueble
+            {
+                Id = reader.GetInt32("id"),
+                Nombre = reader.GetString("nombre")
+            });
+        }
+
+        return listado;
+    }
 
     // Método para llenar selects
     public List<TipoInmueble> GetAllActivos()
@@ -48,59 +48,68 @@ public class RepositorioTipoInmueble : RepositorioBase
         return listado;
     }
 
-    // Método con paginación y búsqueda para la tabla del Index
-    public (List<TipoInmueble> Listado, int TotalPaginas) GetPaginado(string? buscar, int pagina, int tamanoPagina = 10)
+    // Métodos con paginación y búsqueda para la tabla del Index
+    public IList<TipoInmueble> GetPaginado(string? buscar = null, int paginaNro = 1, int tamPagina = 10)
     {
-        var listado = new List<TipoInmueble>();
-        int totalRegistros = 0;
+        IList<TipoInmueble> listado = new List<TipoInmueble>();
+        int offset = Math.Max(0, (paginaNro - 1) * tamPagina);
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
 
-        var whereClause = "WHERE activo = 1";
-        if (!string.IsNullOrWhiteSpace(buscar))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            whereClause += " AND nombre LIKE @buscar";
-        }
+            string sql = @"
+            SELECT * 
+            FROM TipoInmueble
+            WHERE activo = 1 
+              AND (@buscar IS NULL OR nombre LIKE @buscar)
+            ORDER BY id DESC
+            LIMIT @limit OFFSET @offset";
 
-        using MySqlConnection connection = new(connectionString);
-        connection.Open();
-
-        // Obtener total de registros
-        var countQuery = $"SELECT COUNT(*) FROM TipoInmueble {whereClause}";
-        using (MySqlCommand countCommand = new(countQuery, connection))
-        {
-            if (!string.IsNullOrWhiteSpace(buscar))
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
-                countCommand.Parameters.AddWithValue("@buscar", $"%{buscar}%");
-            }
-            totalRegistros = Convert.ToInt32(countCommand.ExecuteScalar());
-        }
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+                command.Parameters.AddWithValue("@limit", tamPagina);
+                command.Parameters.AddWithValue("@offset", offset);
 
-        // Obtener registros paginados
-        int offset = (pagina - 1) * tamanoPagina;
-        var query = $@"SELECT * FROM TipoInmueble 
-                       {whereClause} 
-                       ORDER BY id DESC 
-                       LIMIT @limit OFFSET @offset";
-
-        using (MySqlCommand command = new(query, connection))
-        {
-            if (!string.IsNullOrWhiteSpace(buscar))
-            {
-                command.Parameters.AddWithValue("@buscar", $"%{buscar}%");
-            }
-            command.Parameters.AddWithValue("@limit", tamanoPagina);
-            command.Parameters.AddWithValue("@offset", offset);
-
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                listado.Add(ParseTipoInmueble(reader));
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        listado.Add(ParseTipoInmueble(reader));
+                    }
+                }
             }
         }
-
-        int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanoPagina);
-        return (listado, totalPaginas == 0 ? 1 : totalPaginas);
+        return listado;
     }
+    public int ObtenerCantidad(string? buscar = null)
+    {
+        int total = 0;
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
 
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"
+            SELECT COUNT(id) 
+            FROM TipoInmueble
+            WHERE activo = 1 
+              AND (@buscar IS NULL OR nombre LIKE @buscar)";
+
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+
+                connection.Open();
+                var result = command.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    total = Convert.ToInt32(result);
+                }
+            }
+        }
+        return total;
+    }
     public TipoInmueble? GetById(int id)
     {
         var query = "SELECT * FROM TipoInmueble WHERE id = @id AND activo = 1";

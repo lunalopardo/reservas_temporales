@@ -16,11 +16,15 @@ public class TipoInmuebleController : Controller
     // GET: TipoInmueble
     public IActionResult Index(string? buscar, int pagina = 1)
     {
-        var (listado, totalPaginas) = _repoTipoInmueble.GetPaginado(buscar, pagina);
+        int registrosPorPagina = 10;
+        var listado = _repoTipoInmueble.GetPaginado(buscar, pagina, registrosPorPagina);
 
-        ViewBag.Buscar = buscar;
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = totalPaginas;
+        int totalRegistros = _repoTipoInmueble.ObtenerCantidad(buscar);
+        int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
+
+        ViewData["FiltroActual"] = buscar;
+        ViewData["PaginaActual"] = pagina;
+        ViewData["TotalPaginas"] = totalPaginas == 0 ? 1 : totalPaginas;
 
         return View(listado);
     }

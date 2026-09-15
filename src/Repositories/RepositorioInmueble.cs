@@ -7,75 +7,85 @@ public class RepositorioInmueble : RepositorioBase
 {
     public RepositorioInmueble(IConfiguration configuration) : base(configuration) { }
 
-    public (List<Inmueble> Listado, int TotalPaginas) GetPaginado(string? buscar, int pagina, int tamanoPagina = 10)
+    public IList<Inmueble> GetPaginado(string? buscar = null, int paginaNro = 1, int tamPagina = 10)
     {
-        var listado = new List<Inmueble>();
-        int totalRegistros = 0;
+        IList<Inmueble> listado = new List<Inmueble>();
+        int offset = Math.Max(0, (paginaNro - 1) * tamPagina);
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
 
-        var whereClause = "WHERE i.activo = 1";
-        if (!string.IsNullOrWhiteSpace(buscar))
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            whereClause += @" AND (i.direccion LIKE @buscar 
-                               OR p.nombre LIKE @buscar 
-                               OR p.apellido LIKE @buscar 
-                               OR t.nombre LIKE @buscar)";
-        }
+            string sql = @"
+                SELECT i.*, 
+                       p.nombre AS PropietarioNombre, p.apellido AS PropietarioApellido,
+                       t.nombre AS TipoNombre
+                FROM Inmueble i
+                INNER JOIN Propietario p ON i.id_propietario = p.id
+                INNER JOIN TipoInmueble t ON i.id_tipo_inmueble = t.id
+                WHERE i.activo = 1 
+                  AND (@buscar IS NULL OR i.direccion LIKE @buscar 
+                                       OR p.nombre LIKE @buscar 
+                                       OR p.apellido LIKE @buscar 
+                                       OR t.nombre LIKE @buscar)
+                ORDER BY i.id DESC
+                LIMIT @limit OFFSET @offset";
 
-        using MySqlConnection connection = new(connectionString);
-        connection.Open();
-
-        // Obtener total de registros
-        var countQuery = $@"SELECT COUNT(*) 
-                            FROM Inmueble i
-                            INNER JOIN Propietario p ON i.id_propietario = p.id
-                            INNER JOIN TipoInmueble t ON i.id_tipo_inmueble = t.id
-                            {whereClause}";
-
-        using (MySqlCommand countCommand = new(countQuery, connection))
-        {
-            if (!string.IsNullOrWhiteSpace(buscar))
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
-                countCommand.Parameters.AddWithValue("@buscar", $"%{buscar}%");
-            }
-            totalRegistros = Convert.ToInt32(countCommand.ExecuteScalar());
-        }
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+                command.Parameters.AddWithValue("@limit", tamPagina);
+                command.Parameters.AddWithValue("@offset", offset);
 
-        // Obtener registros paginados
-        int offset = (pagina - 1) * tamanoPagina;
-        var query = $@"SELECT i.*, 
-                              p.nombre AS PropietarioNombre, p.apellido AS PropietarioApellido,
-                              t.nombre AS TipoNombre
-                       FROM Inmueble i
-                       INNER JOIN Propietario p ON i.id_propietario = p.id
-                       INNER JOIN TipoInmueble t ON i.id_tipo_inmueble = t.id
-                       {whereClause}
-                       ORDER BY i.id DESC
-                       LIMIT @limit OFFSET @offset";
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        listado.Add(ParseInmueble(reader));
+                    }
+                }
 
-        using (MySqlCommand command = new(query, connection))
-        {
-            if (!string.IsNullOrWhiteSpace(buscar))
-            {
-                command.Parameters.AddWithValue("@buscar", $"%{buscar}%");
-            }
-            command.Parameters.AddWithValue("@limit", tamanoPagina);
-            command.Parameters.AddWithValue("@offset", offset);
-
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                listado.Add(ParseInmueble(reader));
+                // Cargar reservas para evaluar la disponibilidad
+                if (listado.Any())
+                {
+                    CargarReservasParaInmuebles(connection, listado);
+                }
             }
         }
+        return listado;
+    }
 
-        // Cargar las reservas de los inmuebles obtenidos para que funcione EstaDisponibleHoy
-        if (listado.Any())
+    public int ObtenerCantidad(string? buscar = null)
+    {
+        int total = 0;
+        var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            CargarReservasParaInmuebles(connection, listado);
-        }
+            string sql = @"
+                SELECT COUNT(i.id) 
+                FROM Inmueble i
+                INNER JOIN Propietario p ON i.id_propietario = p.id
+                INNER JOIN TipoInmueble t ON i.id_tipo_inmueble = t.id
+                WHERE i.activo = 1 
+                  AND (@buscar IS NULL OR i.direccion LIKE @buscar 
+                                       OR p.nombre LIKE @buscar 
+                                       OR p.apellido LIKE @buscar 
+                                       OR t.nombre LIKE @buscar)";
 
-        int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanoPagina);
-        return (listado, totalPaginas == 0 ? 1 : totalPaginas);
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@buscar", paramBuscar);
+
+                connection.Open();
+                var result = command.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    total = Convert.ToInt32(result);
+                }
+            }
+        }
+        return total;
     }
 
     public Inmueble? GetById(int id)
@@ -208,7 +218,7 @@ public class RepositorioInmueble : RepositorioBase
         return command.ExecuteNonQuery();
     }
 
-    private void CargarReservasParaInmuebles(MySqlConnection connection, List<Inmueble> inmuebles)
+    private void CargarReservasParaInmuebles(MySqlConnection connection, IList<Inmueble> inmuebles)
     {
         var ids = inmuebles.Select(i => i.Id).ToList();
         var idsParam = string.Join(",", ids);
@@ -220,7 +230,7 @@ public class RepositorioInmueble : RepositorioBase
 
         using MySqlCommand command = new(query, connection);
         using MySqlDataReader reader = command.ExecuteReader();
-        
+
         var reservasDict = new Dictionary<int, List<Reserva>>();
 
         while (reader.Read())
