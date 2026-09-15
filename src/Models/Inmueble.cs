@@ -50,6 +50,13 @@ namespace ReservasTemporales.Models
         [Display(Name = "Precio por día")]
         public decimal Precio { get; set; }
 
+
+        [Required(ErrorMessage = "El porcentaje de seña es obligatorio")]
+        [Range(0, 100, ErrorMessage = "El porcentaje de seña debe estar entre 0 y 100")]
+        [Display(Name = "Seña (%)")]
+        [Column("porcentaje_sena", TypeName = "decimal(5,2)")]
+        public decimal PorcentajeSena { get; set; }
+
         [Column("foto_portada", TypeName = "longtext")]
         [Display(Name = "Foto de Portada")]
         public string? Foto_portada { get; set; }

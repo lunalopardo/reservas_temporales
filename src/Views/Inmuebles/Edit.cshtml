@@ -58,6 +58,12 @@
             <span asp-validation-for="Precio" class="mensaje-error"></span>
         </div>
 
+        <div class="campo">
+            <label asp-for="PorcentajeSena">Seña al reservar</label>
+            <input asp-for="PorcentajeSena" type="number" step="0.01" class="form-control" />
+            <span asp-validation-for="PorcentajeSena" class="mensaje-error"></span>
+        </div>
+
         <!-- Portada actual y opción de subida -->
         <div class="campo">
             <label>Foto de Portada</label>
@@ -65,13 +71,8 @@
             {
                 <div class="contenedor-preview">
                     <img src="@Model.Foto_portada" class="imagen-preview" alt="Portada Actual" />
-                    <button type="submit" 
-                            asp-controller="Imagenes" 
-                            asp-action="Eliminar" 
-                            asp-route-idInmueble="@Model.Id" 
-                            asp-route-tipoFoto="portada" 
-                            class="btn-eliminar-foto" 
-                            title="Eliminar portada">&times;</button>
+                    <button type="submit" asp-controller="Imagenes" asp-action="Eliminar" asp-route-idInmueble="@Model.Id"
+                            asp-route-tipoFoto="portada" class="btn-eliminar-foto" title="Eliminar portada">&times;</button>
                 </div>
             }
             <input type="file" name="archivoPortada" accept="image/*" class="form-control" />
@@ -87,14 +88,9 @@
                     {
                         <div class="contenedor-preview">
                             <img src="@galeriaFotos[i]" class="imagen-preview" alt="Foto @i" />
-                            <button type="submit" 
-                                    asp-controller="Imagenes" 
-                                    asp-action="Eliminar" 
-                                    asp-route-idInmueble="@Model.Id" 
-                                    asp-route-tipoFoto="galeria" 
-                                    asp-route-posicion="@i" 
-                                    class="btn-eliminar-foto" 
-                                    title="Eliminar esta foto">&times;</button>
+                            <button type="submit" asp-controller="Imagenes" asp-action="Eliminar"
+                                    asp-route-idInmueble="@Model.Id" asp-route-tipoFoto="galeria" asp-route-posicion="@i"
+                                    class="btn-eliminar-foto" title="Eliminar esta foto">&times;</button>
                         </div>
                     }
                 </div>
@@ -110,5 +106,7 @@
 </div>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -54,6 +54,12 @@
         </div>
 
         <div class="campo">
+            <label asp-for="PorcentajeSena">Seña al reservar</label>
+            <input asp-for="PorcentajeSena" type="number" step="0.01" class="form-control" />
+            <span asp-validation-for="PorcentajeSena" class="mensaje-error"></span>
+        </div>
+
+        <div class="campo">
             <label>Foto de Portada</label>
             <input type="file" name="archivoPortada" accept="image/*" class="form-control" />
         </div>
@@ -76,7 +82,7 @@
     }
 
     <script type="text/javascript">
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#IdPropietario').select2({
                 language: "es",
                 placeholder: "Escriba para buscar propietario...",
@@ -86,14 +92,14 @@
                     dataType: "json",
                     url: function (params) {
                         let q = params.term ? encodeURIComponent(params.term) : "";
-                        return `/Propietarios/Buscar/${q}`; 
+                        return `/Propietarios/Buscar/${q}`;
                     },
                     processResults: function (res) {
-                        let lista = res.datos || res; 
+                        let lista = res.datos || res;
                         
                         return {
                             results: lista.map(p => ({
-                                id: p.idPropietario, 
+                                id: p.idPropietario,
                                 text: p.texto
                             }))
                         };

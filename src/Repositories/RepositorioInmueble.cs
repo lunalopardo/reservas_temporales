@@ -156,9 +156,9 @@ public class RepositorioInmueble : RepositorioBase
     public int Create(Inmueble inmueble)
     {
         var query = @"INSERT INTO Inmueble 
-                      (id_propietario, id_tipo_inmueble, direccion, cupo, coord, precio, foto_portada, fotos, activo)
+                      (id_propietario, id_tipo_inmueble, direccion, cupo, coord, precio, porcentaje_sena, foto_portada, fotos, activo)
                       VALUES 
-                      (@idPropietario, @idTipoInmueble, @direccion, @cupo, @coord, @precio, @fotoPortada, @fotos, 1)";
+                      (@idPropietario, @idTipoInmueble, @direccion, @cupo, @coord, @precio, @porcentajeSena, @fotoPortada, @fotos, 1)";
 
         using MySqlConnection connection = new(connectionString);
         using MySqlCommand command = new(query, connection);
@@ -169,6 +169,7 @@ public class RepositorioInmueble : RepositorioBase
         command.Parameters.AddWithValue("@cupo", inmueble.Cupo);
         command.Parameters.AddWithValue("@coord", (object?)inmueble.Coord ?? DBNull.Value);
         command.Parameters.AddWithValue("@precio", inmueble.Precio);
+        command.Parameters.AddWithValue("@porcentajeSena", inmueble.PorcentajeSena);
         command.Parameters.AddWithValue("@fotoPortada", (object?)inmueble.Foto_portada ?? DBNull.Value);
         command.Parameters.AddWithValue("@fotos", (object?)inmueble.Fotos ?? DBNull.Value);
 
@@ -185,6 +186,7 @@ public class RepositorioInmueble : RepositorioBase
                       cupo = @cupo,
                       coord = @coord,
                       precio = @precio,
+                      porcentaje_sena = @porcentajeSena,
                       foto_portada = @fotoPortada,
                       fotos = @fotos
                       WHERE id = @id AND activo = 1";
@@ -199,6 +201,7 @@ public class RepositorioInmueble : RepositorioBase
         command.Parameters.AddWithValue("@cupo", inmueble.Cupo);
         command.Parameters.AddWithValue("@coord", (object?)inmueble.Coord ?? DBNull.Value);
         command.Parameters.AddWithValue("@precio", inmueble.Precio);
+        command.Parameters.AddWithValue("@porcentajeSena", inmueble.PorcentajeSena);
         command.Parameters.AddWithValue("@fotoPortada", (object?)inmueble.Foto_portada ?? DBNull.Value);
         command.Parameters.AddWithValue("@fotos", (object?)inmueble.Fotos ?? DBNull.Value);
 
@@ -223,7 +226,6 @@ public class RepositorioInmueble : RepositorioBase
         var ids = inmuebles.Select(i => i.Id).ToList();
         var idsParam = string.Join(",", ids);
 
-        // Consultamos las reservas asociadas a estos inmuebles
         var query = $@"SELECT id, id_inmueble, fecha_desde, fecha_hasta, activo 
                        FROM Reserva 
                        WHERE id_inmueble IN ({idsParam})";
@@ -251,7 +253,6 @@ public class RepositorioInmueble : RepositorioBase
             reservasDict[reserva.IdInmueble].Add(reserva);
         }
 
-        // Asignamos las reservas a cada inmueble correspondiente
         foreach (var inmueble in inmuebles)
         {
             if (reservasDict.ContainsKey(inmueble.Id))
@@ -330,6 +331,7 @@ public class RepositorioInmueble : RepositorioBase
             Direccion = reader.GetString("direccion"),
             Cupo = reader.GetInt32("cupo"),
             Precio = reader.GetDecimal("precio"),
+            PorcentajeSena = reader.GetDecimal("porcentaje_sena"),
             Coord = reader.IsDBNull(reader.GetOrdinal("coord")) ? null : reader.GetString("coord"),
             Foto_portada = reader.IsDBNull(reader.GetOrdinal("foto_portada")) ? null : reader.GetString("foto_portada"),
             Fotos = reader.IsDBNull(reader.GetOrdinal("fotos")) ? null : reader.GetString("fotos"),

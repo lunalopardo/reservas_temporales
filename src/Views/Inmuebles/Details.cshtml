@@ -35,7 +35,8 @@
                 <div class="carrusel-miniaturas">
                     @for (int i = 0; i < listaImagenes.Count; i++)
                     {
-                        <img src="@listaImagenes[i]" class="miniatura @(i == 0 ? "activa" : "")" onclick="seleccionarImagen(@i)" alt="Miniatura @(i + 1)" />
+                        <img src="@listaImagenes[i]" class="miniatura @(i == 0 ? "activa" : "")" onclick="seleccionarImagen(@i)"
+                             alt="Miniatura @(i + 1)" />
                     }
                 </div>
             }
@@ -54,6 +55,7 @@
         <p><strong>Tipo de Inmueble:</strong> @Model.TipoInmueble?.Nombre</p>
         <p><strong>Cupo de Personas:</strong> @Model.Cupo personas</p>
         <p><strong>Precio por día:</strong> $@Model.Precio.ToString("N2")</p>
+        <p><strong>Seña al reservar:</strong> @Model.PorcentajeSena.ToString("0.##")%</p>
         <p><strong>Coordenadas GPS:</strong> @(string.IsNullOrEmpty(Model.Coord) ? "No especificadas" : Model.Coord)</p>
         <p><strong>Estado:</strong> @(Model.EstaDisponibleHoy ? "Disponible para rentar" : "No disponible")</p>
     </div>
