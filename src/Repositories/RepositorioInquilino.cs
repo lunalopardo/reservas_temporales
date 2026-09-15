@@ -171,6 +171,52 @@ public class RepositorioInquilino : RepositorioBase
         return command.ExecuteNonQuery();
     }
 
+    public IList<Inquilino> GetParaSelect(string? buscar = null, int limite = 20)
+    {
+        var listado = new List<Inquilino>();
+
+        string sql = @"
+        SELECT id, nombre, apellido, dni 
+        FROM Inquilino 
+        WHERE activo = 1";
+
+        if (!string.IsNullOrWhiteSpace(buscar))
+        {
+            sql += " AND (nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)";
+        }
+
+        sql += " ORDER BY apellido, nombre ASC LIMIT @limite";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                if (!string.IsNullOrWhiteSpace(buscar))
+                {
+                    command.Parameters.AddWithValue("@buscar", $"%{buscar.Trim()}%");
+                }
+                command.Parameters.AddWithValue("@limite", limite);
+
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        listado.Add(new Inquilino
+                        {
+                            IdInquilino = reader.GetInt32("id"),
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido"),
+                            Dni = reader.GetString("dni")
+                        });
+                    }
+                }
+            }
+        }
+
+        return listado;
+    }
+
     /*función auxiliar privada encargada de transformar una fila devuelta por MySQL en un objeto C# de tipo Inquilino (para reutilizar)*/
     private static Inquilino ParseInquilino(MySqlDataReader reader)
     {

@@ -18,25 +18,25 @@
 
         <div class="campo">
             <label asp-for="IdInmueble">Inmueble</label>
-            <select asp-for="IdInmueble" asp-items="ViewBag.IdInmueble" id="IdInmueble">
-                <option value="">Seleccione un inmueble</option>
+            <select asp-for="IdInmueble" class="form-control" asp-items="ViewBag.IdInmueble" id="IdInmueble">
+                <option value="">-- Buscar inmueble por dirección --</option>
             </select>
             <span asp-validation-for="IdInmueble" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="IdInquilino">Inquilino</label>
-            <select asp-for="IdInquilino" asp-items="ViewBag.IdInquilino">
-                <option value="">Seleccione un inquilino</option>
+            <select asp-for="IdInquilino" class="form-control" asp-items="ViewBag.IdInquilino" id="IdInquilino">
+                <option value="">-- Buscar inquilino por nombre o DNI --</option>
             </select>
             <span asp-validation-for="IdInquilino" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="FechaDesde">Fecha de inicio</label>
-            <input asp-for="FechaDesde" type="text" id="fechaDesde" placeholder="Selecciona la fecha de inicio" autocomplete="off" />
+            <input asp-for="FechaDesde" type="text" class="form-control" id="fechaDesde" placeholder="Selecciona la fecha de inicio" autocomplete="off" />
             
-            <div class="calendario-ayuda">
+            <div class="calendario-ayuda mt-2">
                 <span>
                     <span class="indicador disponible"></span>
                     Disponible
@@ -51,17 +51,17 @@
 
         <div class="campo">
             <label asp-for="FechaHasta">Fecha de finalizacion</label>
-            <input asp-for="FechaHasta" type="text" id="fechaHasta" placeholder="Selecciona la fecha de finalización" autocomplete="off" />
+            <input asp-for="FechaHasta" type="text" class="form-control" id="fechaHasta" placeholder="Selecciona la fecha de finalización" autocomplete="off" />
             <span asp-validation-for="FechaHasta" class="mensaje-error"></span>
         </div>
 
         <div class="campo">
             <label asp-for="MontoDiario">Monto diario</label>
-            <input asp-for="MontoDiario" type="number" step="0.01" min="0.01" id="montoDiarioInput" />
+            <input asp-for="MontoDiario" type="number" step="0.01" min="0.01" class="form-control" id="montoDiarioInput" />
             <span asp-validation-for="MontoDiario" class="mensaje-error"></span>
         </div>
 
-        <div class="acciones">
+        <div class="acciones mt-4">
             <button type="submit" class="boton-guardar">Guardar reserva</button>
             <a asp-action="Index" class="boton-volver">Volver</a>
         </div>
@@ -73,20 +73,70 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <!-- Flatpickr -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // SELECT2 PARA INMUEBLES
+            $('#IdInmueble').select2({
+                language: "es",
+                placeholder: "Escriba la dirección del inmueble...",
+                minimumInputLength: 2,
+                ajax: {
+                    delay: 250,
+                    dataType: "json",
+                    url: function (params) {
+                        let q = params.term ? encodeURIComponent(params.term) : "";
+                        return `/Reservas/BuscarInmuebles?q=${q}`; 
+                    },
+                    processResults: function (res) {
+                        let lista = res.datos || res; 
+                        
+                        return {
+                            results: lista.map(i => ({
+                                id: i.id, 
+                                text: i.direccion || i.texto
+                            }))
+                        };
+                    }
+                }
+            });
+
+            // SELECT2 PARA INQUILINOS
+            $('#IdInquilino').select2({
+                language: "es",
+                placeholder: "Escriba para buscar inquilino...",
+                minimumInputLength: 2,
+                ajax: {
+                    delay: 250,
+                    dataType: "json",
+                    url: function (params) {
+                        let q = params.term ? encodeURIComponent(params.term) : "";
+                        return `/Reservas/BuscarInquilinos?q=${q}`; 
+                    },
+                    processResults: function (res) {
+                        let lista = res.datos || res; 
+                        
+                        return {
+                            results: lista.map(i => ({
+                                id: i.idInquilino || i.id, 
+                                text: i.texto ? i.texto : `${i.nombre} ${i.apellido} - DNI: ${i.dni}`
+                            }))
+                        };
+                    }
+                }
+            });
+
+            // FLATPICKR Y CARGA DINÁMICA DE PRECIOS/FECHAS
             let fechasOcupadasSet = new Set();
             
             const pickerDesde = flatpickr("#fechaDesde", {
                 locale: "es",
                 dateFormat: "Y-m-d",
-                minDate: "today", //RESTRINGE A PARTIR DE HOY
+                minDate: "today",
                 disable: [],
-                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                onDayCreate: function (dObj, dStr, fp, dayElem) {
                     let anio = dayElem.dateObj.getFullYear();
                     let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
                     let dia = String(dayElem.dateObj.getDate()).padStart(2, '0');
@@ -103,7 +153,7 @@
                 dateFormat: "Y-m-d",
                 minDate: "today",
                 disable: [],
-                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                onDayCreate: function (dObj, dStr, fp, dayElem) {
                     let anio = dayElem.dateObj.getFullYear();
                     let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
                     let dia = String(dayElem.dateObj.getDate()).padStart(2, '0');
@@ -115,7 +165,6 @@
                 }
             });
 
-            const selectInmueble = document.getElementById("IdInmueble");
             const inputMonto = document.getElementById("montoDiarioInput");
 
             function cargarDatosInmueble(idInmueble) {
@@ -129,6 +178,7 @@
                     return;
                 }
 
+                // Obtener precio
                 fetch(`/Reservas/GetPrecioInmueble?id=${idInmueble}`)
                     .then(response => response.json())
                     .then(data => {
@@ -138,6 +188,7 @@
                     })
                     .catch(error => console.error("Error al obtener precio:", error));
 
+                // Obtener fechas ocupadas para el calendario
                 fetch(`/Reservas/GetFechasReservadas?idInmueble=${idInmueble}`)
                     .then(response => response.json())
                     .then(data => {
@@ -153,7 +204,7 @@
                             let currDate = new Date(fDesdeStr + 'T00:00:00');
                             let endDate = new Date(fHastaStr + 'T00:00:00');
 
-                            while(currDate <= endDate) {
+                            while (currDate <= endDate) {
                                 let anio = currDate.getFullYear();
                                 let mes = String(currDate.getMonth() + 1).padStart(2, '0');
                                 let dia = String(currDate.getDate()).padStart(2, '0');
@@ -171,12 +222,12 @@
                     .catch(error => console.error("Error al obtener fechas:", error));
             }
 
-            selectInmueble.addEventListener("change", function () {
-                cargarDatosInmueble(this.value);
+            $('#IdInmueble').on('change', function () {
+                cargarDatosInmueble($(this).val());
             });
 
-            if (selectInmueble.value) {
-                cargarDatosInmueble(selectInmueble.value);
+            if ($('#IdInmueble').val()) {
+                cargarDatosInmueble($('#IdInmueble').val());
             }
         });
     </script>

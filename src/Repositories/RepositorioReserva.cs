@@ -297,56 +297,6 @@ namespace ReservasTemporales.Repositories
             return null;
         }
 
-        public List<Inmueble> GetInmueblesDisponibles()
-        {
-            var listado = new List<Inmueble>();
-            var query = "SELECT id, direccion, precio, activo FROM Inmueble WHERE activo = 1 ORDER BY direccion";
-
-            using MySqlConnection connection = new(connectionString);
-            using MySqlCommand command = new(query, connection);
-            connection.Open();
-
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                listado.Add(new Inmueble
-                {
-                    Id = reader.GetInt32("id"),
-                    Direccion = reader.GetString("direccion"),
-                    Precio = reader.GetDecimal("precio"),
-                    Activo = reader.GetBoolean("activo")
-                });
-            }
-
-            return listado.Where(i => i.EstaDisponibleHoy).ToList();
-        }
-
-        public List<Inquilino> GetInquilinosActivos()
-        {
-            var listado = new List<Inquilino>();
-            var query = "SELECT id, nombre, apellido, dni, email, telefono, activo FROM Inquilino WHERE activo = 1 ORDER BY apellido, nombre";
-
-            using MySqlConnection connection = new(connectionString);
-            using MySqlCommand command = new(query, connection);
-            connection.Open();
-
-            using MySqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                listado.Add(new Inquilino
-                {
-                    IdInquilino = reader.GetInt32("id"),
-                    Nombre = reader.GetString("nombre"),
-                    Apellido = reader.GetString("apellido"),
-                    Dni = reader.GetString("dni"),
-                    Email = reader.GetString("email"),
-                    Telefono = reader.IsDBNull(reader.GetOrdinal("telefono")) ? string.Empty : reader.GetString("telefono"),
-                    Activo = reader.GetBoolean("activo")
-                });
-            }
-
-            return listado;
-        }
 
         public decimal? GetPrecioInmueble(int id)
         {

@@ -43,7 +43,7 @@ public class RepositorioPropietario : RepositorioBase
                 SELECT id, nombre, apellido, dni, telefono, email, activo 
                 FROM Propietario
                 WHERE activo = 1 
-                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)
+                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR CONCAT(Nombre, ' ', Apellido) LIKE @buscar OR dni LIKE @buscar)
                 ORDER BY id
                 LIMIT @limit OFFSET @offset";
 

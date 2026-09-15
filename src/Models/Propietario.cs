@@ -44,5 +44,10 @@ namespace ReservasTemporales.Models
 
         [Column("activo")]
         public bool Activo { get; set; } = true;
+
+        public override string ToString()
+        {
+            return $"{Nombre} {Apellido} ({Dni})";
+        }
     }
 }

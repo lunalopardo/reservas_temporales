@@ -118,5 +118,26 @@ namespace ReservasTemporales.Controllers
             repo.DeleteLogico(id);
             return RedirectToAction(nameof(Index));
         }
+
+
+        // GET: Propietarios/Buscar/texto
+        [HttpGet("Propietarios/Buscar/{q?}")]
+        public IActionResult Buscar(string q = "")
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return Json(new { datos = new List<object>() });
+            }
+
+            var propietarios = repo.GetPaginado(q, 1, 20);
+
+            var resultados = propietarios.Select(p => new
+            {
+                idPropietario = p.IdPropietario,
+                texto = p.ToString()
+            });
+
+            return Json(new { datos = resultados });
+        }
     }
 }

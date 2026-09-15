@@ -145,12 +145,23 @@ namespace ReservasTemporales.Controllers
         }
 
         // Método auxiliar para llenar los select
-        private void CargarSelects(object? propietarioSel = null, object? tipoSel = null)
+        private void CargarSelects(int? propietarioSel = null, int? tipoSel = null)
         {
-            var propietarios = _repositorioPropietario.GetActivos()
-                .Select(p => new { p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" });
-
-            ViewBag.IdPropietario = new SelectList(propietarios, "IdPropietario", "NombreCompleto", propietarioSel);
+            if (propietarioSel.HasValue && propietarioSel.Value > 0)
+            {
+                var p = _repositorioPropietario.GetById(propietarioSel.Value);
+                if (p != null)
+                {
+                    var propietarioSeleccionado = new[] {
+                new { IdPropietario = p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" }
+            };
+                    ViewBag.IdPropietario = new SelectList(propietarioSeleccionado, "IdPropietario", "NombreCompleto", propietarioSel);
+                }
+            }
+            else
+            {
+                ViewBag.IdPropietario = new SelectList(new List<SelectListItem>());
+            }
 
             var tipos = _repositorioTipoInmueble.GetAll();
             ViewBag.IdTipoInmueble = new SelectList(tipos, "Id", "Nombre", tipoSel);

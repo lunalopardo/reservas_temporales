@@ -265,7 +265,51 @@ public class RepositorioInmueble : RepositorioBase
         }
     }
 
-    private static Inmueble ParseInmueble(MySqlDataReader reader)
+    public IList<Inmueble> GetParaSelect(string? buscar = null, int limite = 20)
+    {
+        var listado = new List<Inmueble>();
+
+        string sql = @"
+        SELECT id, direccion 
+        FROM Inmueble 
+        WHERE activo = 1";
+
+        if (!string.IsNullOrWhiteSpace(buscar))
+        {
+            sql += " AND direccion LIKE @buscar";
+        }
+
+        sql += " ORDER BY direccion ASC LIMIT @limite";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                if (!string.IsNullOrWhiteSpace(buscar))
+                {
+                    command.Parameters.AddWithValue("@buscar", $"%{buscar.Trim()}%");
+                }
+                command.Parameters.AddWithValue("@limite", limite);
+
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        listado.Add(new Inmueble
+                        {
+                            Id = reader.GetInt32("id"),
+                            Direccion = reader.GetString("direccion")
+                        });
+                    }
+                }
+            }
+        }
+
+        return listado;
+    }
+
+    internal static Inmueble ParseInmueble(MySqlDataReader reader)
     {
         return new Inmueble
         {

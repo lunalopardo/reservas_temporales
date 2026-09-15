@@ -8,10 +8,17 @@ namespace ReservasTemporales.Controllers
     public class ReservasController : Controller
     {
         private readonly RepositorioReserva _repositorioReserva;
+        private readonly RepositorioInmueble _repositorioInmueble;
+        private readonly RepositorioInquilino _repositorioInquilino;
 
-        public ReservasController(IConfiguration configuration)
+        public ReservasController(
+                RepositorioReserva repositorioReserva,
+                RepositorioInmueble repositorioInmueble,
+                RepositorioInquilino repositorioInquilino)
         {
-            _repositorioReserva = new RepositorioReserva(configuration);
+            _repositorioReserva = repositorioReserva;
+            _repositorioInmueble = repositorioInmueble;
+            _repositorioInquilino = repositorioInquilino;
         }
 
         // GET: Reservas
@@ -45,8 +52,11 @@ namespace ReservasTemporales.Controllers
         // GET: Reservas/Create
         public IActionResult Create()
         {
-            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion");
-            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto");
+            var inmuebles = _repositorioInmueble.GetParaSelect();
+            var inquilinos = _repositorioInquilino.GetParaSelect();
+
+            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion");
+            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto");
             return View();
         }
 
@@ -55,16 +65,8 @@ namespace ReservasTemporales.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Reserva reserva)
         {
-            // Asignamos el ID del usuario por defecto hasta que hagamos autenticación
             reserva.CreadoPorUserId = 1;
-
             ModelState.Remove(nameof(reserva.CreadoPorUserId));
-
-            var errores = ModelState.Values.SelectMany(v => v.Errors);
-            foreach (var error in errores)
-            {
-                Console.WriteLine("ERROR DE MODELO: " + error.ErrorMessage);
-            }
 
             if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.FechaDesde, reserva.FechaHasta))
             {
@@ -83,8 +85,12 @@ namespace ReservasTemporales.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion", reserva.IdInmueble);
-            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto", reserva.IdInquilino);
+            var inmuebles = _repositorioInmueble.GetParaSelect();
+            var inquilinos = _repositorioInquilino.GetParaSelect();
+
+            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", reserva.IdInmueble);
+            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", reserva.IdInquilino);
+
             return View(reserva);
         }
 
@@ -97,8 +103,11 @@ namespace ReservasTemporales.Controllers
                 return NotFound();
             }
 
-            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion", reserva.IdInmueble);
-            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto", reserva.IdInquilino);
+            var inmuebles = _repositorioInmueble.GetParaSelect();
+            var inquilinos = _repositorioInquilino.GetParaSelect();
+
+            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", reserva.IdInmueble);
+            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", reserva.IdInquilino);
             return View(reserva);
         }
 
@@ -140,8 +149,11 @@ namespace ReservasTemporales.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.IdInmueble = new SelectList(_repositorioReserva.GetInmueblesDisponibles(), "Id", "Direccion", reserva.IdInmueble);
-            ViewBag.IdInquilino = new SelectList(_repositorioReserva.GetInquilinosActivos(), "IdInquilino", "NombreCompleto", reserva.IdInquilino);
+            var inmuebles = _repositorioInmueble.GetParaSelect();
+            var inquilinos = _repositorioInquilino.GetParaSelect();
+
+            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", reserva.IdInmueble);
+            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", reserva.IdInquilino);
             return View(reserva);
         }
 
@@ -183,6 +195,34 @@ namespace ReservasTemporales.Controllers
         {
             var fechas = _repositorioReserva.ObtenerFechasReservadasPorInmueble(idInmueble);
             return Json(fechas);
+        }
+
+        // --- ENDPOINTS AJAX PARA SELECT2 ---
+
+        [HttpGet]
+        public IActionResult BuscarInmuebles(string q)
+        {
+            var inmuebles = _repositorioInmueble.GetParaSelect(q, 20);
+            var resultado = inmuebles.Select(i => new
+            {
+                id = i.Id,
+                direccion = i.Direccion
+            });
+            return Json(resultado);
+        }
+
+        [HttpGet]
+        public IActionResult BuscarInquilinos(string q)
+        {
+            var inquilinos = _repositorioInquilino.GetParaSelect(q, 20);
+            var resultado = inquilinos.Select(i => new
+            {
+                idInquilino = i.IdInquilino,
+                nombre = i.Nombre,
+                apellido = i.Apellido,
+                dni = i.Dni
+            });
+            return Json(resultado);
         }
     }
 }
