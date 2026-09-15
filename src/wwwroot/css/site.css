@@ -3,15 +3,15 @@
     --bg-card: #18181b;
     --bg-hover: #27272a;
     --border-color: #27272a;
-    
+
     --text-primary: #f4f4f5;
     --text-secondary: #a1a1aa;
-    
+
     --accent: #bb86fc;
     --accent-hover: #9965da;
     --accent-btn: #27272a;
     --accent-btn-hover: #3f3f46;
-    
+
     --danger: #ef4444;
     --danger-hover: #b00020;
 }
@@ -33,7 +33,8 @@ body {
 }
 
 /* Enlaces */
-a, a:visited {
+a,
+a:visited {
     color: var(--text-primary);
     text-decoration: none;
     transition: color 0.2s ease;
@@ -44,23 +45,28 @@ a:hover {
 }
 
 /* Navegación */
-header nav, .navbar {
+header nav,
+.navbar {
     background-color: var(--bg-card) !important;
     border-bottom: 1px solid var(--border-color) !important;
     padding: 0.8rem 1.5rem;
     box-shadow: none !important;
 }
 
-.navbar-brand, .nav-link {
+.navbar-brand,
+.nav-link {
     color: #ffffff !important;
     font-weight: 500;
 }
 
-.nav-link:hover, .navbar-brand:hover {
+.nav-link:hover,
+.navbar-brand:hover {
     color: var(--accent) !important;
 }
 
-hr, .border-bottom, .border-top {
+hr,
+.border-bottom,
+.border-top {
     border-color: var(--border-color) !important;
 }
 
@@ -70,12 +76,14 @@ hr, .border-bottom, .border-top {
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 32px;
-    max-width: 900px;
+    width: 95%;
+    max-width: 1300px;
+    /* Ampliado de 900px a 1300px para tablas anchas */
     margin: 40px auto;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-.formulario-contenedor, 
+.formulario-contenedor,
 .tarjeta-detalle {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -96,7 +104,10 @@ hr, .border-bottom, .border-top {
 }
 
 /* Títulos */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
     color: var(--text-primary);
     font-weight: 600;
     margin-top: 0;
@@ -174,10 +185,19 @@ h1, h2, h3, h4 {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     text-align: left;
+    white-space: nowrap;
 }
 
-.tabla-datos th:first-child { border-top-left-radius: 8px; }
-.tabla-datos th:last-child { border-top-right-radius: 8px; }
+.tabla-datos th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.tabla-datos th:last-child {
+    border-top-right-radius: 8px;
+    text-align: center;
+    width: 1%;
+    white-space: nowrap;
+}
 
 .tabla-datos td {
     padding: 14px 16px;
@@ -186,8 +206,22 @@ h1, h2, h3, h4 {
     color: var(--text-primary);
 }
 
-.tabla-datos tr:last-child td { border-bottom: none; }
-.tabla-datos tr:hover td { background-color: var(--bg-hover); }
+/* Mantener juntas fechas, importes y códigos */
+.tabla-datos td:nth-child(1),
+.tabla-datos td:nth-child(2),
+.tabla-datos td:nth-child(6),
+.tabla-datos td:nth-child(7),
+.tabla-datos td:nth-child(8) {
+    white-space: nowrap;
+}
+
+.tabla-datos tr:last-child td {
+    border-bottom: none;
+}
+
+.tabla-datos tr:hover td {
+    background-color: var(--bg-hover);
+}
 
 /* Botones Principales */
 .boton-nuevo,
@@ -243,10 +277,11 @@ h1, h2, h3, h4 {
 .columna-acciones {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 0.5rem;
     background: transparent !important;
     border: none !important;
+    white-space: nowrap;
 }
 
 .boton-icono {
@@ -408,7 +443,9 @@ h1, h2, h3, h4 {
 }
 
 @media (max-width: 600px) {
-    .cards-grid { grid-template-columns: 1fr; }
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .card-item {
@@ -475,7 +512,8 @@ footer {
     position: relative;
 }
 
-footer a, footer a:visited {
+footer a,
+footer a:visited {
     color: #ffffff !important;
 }
 
@@ -483,8 +521,8 @@ footer a:hover {
     color: var(--accent) !important;
 }
 
-main, 
-main[role="main"], 
+main,
+main[role="main"],
 .container {
     flex: 1 0 auto !important;
 }

@@ -1,0 +1,135 @@
+@model IEnumerable<ReservasTemporales.Models.Pago>
+
+@{
+    ViewData["Title"] = "Listado de Pagos";
+}
+
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
+
+<div class="contenedor-principal">
+    <div class="encabezado-tabla">
+        <h2 class="titulo-vista" style="margin: 0; border-bottom: none; padding-bottom: 0;">Pagos</h2>
+        <a asp-action="Create" class="boton-nuevo">Nuevo Pago</a>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success" role="alert" style="margin-bottom: 15px;">
+            @TempData["Mensaje"]
+        </div>
+    }
+
+    <table class="tabla-datos">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Reserva</th>
+                <th>Inquilino</th>
+                <th>Inmueble</th>
+                <th>Concepto</th>
+                <th>Fecha</th>
+                <th>Importe</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>#@item.IdReserva</td>
+                    <td>@item.NombreInquilino</td>
+                    <td>@item.DireccionInmueble</td>
+                    <td>@item.Concepto</td>
+                    <td>@item.FechaPago.ToString("dd/MM/yyyy")</td>
+                    <td>@item.Importe.ToString("C")</td>
+                    <td>
+                        <span class="badge @(item.Activo ? "bg-success" : "bg-danger")">
+                            @(item.Activo ? "Activo" : "Anulado")
+                        </span>
+                    </td>
+                    <td class="columna-acciones">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="boton-icono" title="Detalles">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="boton-icono" title="Editar">
+                            <span class="material-symbols-outlined">edit</span>
+                        </a>
+
+                        @if (item.Activo)
+                        {
+                            <button type="button" class="boton-icono boton-icono-eliminar"
+                                    onclick="confirmarCambioEstado(@item.Id, true)" title="Anular Pago">
+                                <span class="material-symbols-outlined">block</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="boton-icono boton-icono-activar"
+                                    onclick="confirmarCambioEstado(@item.Id, false)" title="Reactivar Pago">
+                                <span class="material-symbols-outlined">check_circle</span>
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalConfirmarEstado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content tarjeta-detalle">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title titulo-vista" id="modalTitulo"
+                    style="margin: 0; padding-bottom: 0; border-bottom: none;">Confirmar Acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body subtitulo-alerta">
+                <p id="modalMensaje">¿Deseas cambiar el estado de este pago?</p>
+            </div>
+            <div class="modal-footer acciones"
+                 style="border-top: 1px solid var(--border-color); justify-content: flex-end;">
+                <button type="button" class="boton-volver" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formCambiarEstado" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="pagoIdEstado" name="id" value="" />
+                    <button type="submit" id="btnConfirmarEstado" class="boton-eliminar">Confirmar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmarCambioEstado(id, estaActivo) {
+            document.getElementById('pagoIdEstado').value = id;
+            var modalTitulo = document.getElementById('modalTitulo');
+            var modalMensaje = document.getElementById('modalMensaje');
+            var btnConfirmar = document.getElementById('btnConfirmarEstado');
+            var form = document.getElementById('formCambiarEstado');
+
+            if (estaActivo) {
+                modalTitulo.innerText = "Confirmar Anulación";
+                modalMensaje.innerText = "¿Estás seguro de que deseas anular este pago?";
+                btnConfirmar.innerText = "Anular Pago";
+                btnConfirmar.className = "boton-eliminar";
+                form.action = '@Url.Action("Delete", "Pagos")';
+            } else {
+                modalTitulo.innerText = "Confirmar Reactivación";
+                modalMensaje.innerText = "¿Estás seguro de que deseas reactivar este pago?";
+                btnConfirmar.innerText = "Reactivar Pago";
+                btnConfirmar.className = "boton-guardar";
+                form.action = '@Url.Action("Reactivar", "Pagos")';
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('modalConfirmarEstado'));
+            modal.show();
+        }
+    </script>
+}

@@ -379,5 +379,45 @@ namespace ReservasTemporales.Repositories
             }
             return lista;
         }
+
+        //Método para traer la reserva al select de Pagos tanto como por inquilino como por inm.
+        public List<object> BuscarPorInquilinoODireccion(string q)
+        {
+            var lista = new List<object>();
+            var paramBuscar = string.IsNullOrWhiteSpace(q) ? (object)DBNull.Value : $"%{q.Trim()}%";
+
+            string sql = @"
+        SELECT r.id AS IdReserva, 
+               CONCAT(iq.nombre, ' ', iq.apellido) AS InquilinoNombreCompleto, 
+               i.direccion AS InmuebleDireccion
+        FROM Reserva r
+        INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
+        INNER JOIN Inmueble i ON r.id_inmueble = i.id
+        WHERE r.activo = 1 
+          AND (@buscar IS NULL OR iq.nombre LIKE @buscar OR iq.apellido LIKE @buscar OR i.direccion LIKE @buscar)
+        LIMIT 20;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@buscar", paramBuscar);
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lista.Add(new
+                            {
+                                id = reader.GetInt32("IdReserva"),
+                                texto = $"{reader.GetString("InquilinoNombreCompleto")} - {reader.GetString("InmuebleDireccion")}"
+                            });
+                        }
+                    }
+                }
+            }
+            return lista;
+        }
     }
 }

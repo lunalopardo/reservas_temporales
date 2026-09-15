@@ -1,0 +1,31 @@
+@model ReservasTemporales.Models.Pago
+
+@{
+    ViewData["Title"] = "Detalles del Pago";
+}
+
+<link rel="stylesheet" href="~/css/formularios.css" />
+<link rel="stylesheet" href="~/css/site.css" />
+
+<div class="tarjeta-detalle tarjeta-detalle-corta">
+    <h2 class="titulo-vista">Detalles del Pago</h2>
+
+    <div class="tarjeta-cabecera">
+        <h3>Pago #@Model.Id</h3>
+    </div>
+
+    <div class="tarjeta-cuerpo">
+        <p><strong>Código de Reserva:</strong> #@Model.IdReserva</p>
+        <p><strong>Inquilino:</strong> @Model.NombreInquilino</p>
+        <p><strong>Inmueble:</strong> @Model.DireccionInmueble</p>
+        <p><strong>Concepto:</strong> @Model.Concepto</p>
+        <p><strong>Fecha de Pago:</strong> @Model.FechaPago.ToString("dd/MM/yyyy")</p>
+        <p><strong>Importe:</strong> @Model.Importe.ToString("C")</p>
+        <p><strong>Estado:</strong> @(Model.Activo ? "Activo" : "Anulado")</p>
+    </div>
+
+    <div class="acciones">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="boton-guardar">Editar</a>
+        <a asp-action="Index" class="boton-volver">Volver al listado</a>
+    </div>
+</div>
