@@ -2,39 +2,41 @@
 .tarjeta-cuerpo p {
     color: var(--text-secondary);
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
 }
 
 .tarjeta-cuerpo strong {
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 .acciones {
     display: flex;
     gap: 12px;
     justify-content: flex-start;
-    margin-top: 24px;
+    margin-top: 28px;
 }
 
-/* Subtítulo de advertencia (Delete) */
+/* Advertencia en borrado/anulación */
 .subtitulo-alerta {
     color: var(--text-secondary);
     font-size: 0.95rem;
     margin-bottom: 20px;
 }
 
-/* Lista de datos en Delete */
 .detalle-datos {
     background-color: var(--bg-main);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 20px;
     margin-bottom: 24px;
 }
 
 .detalle-datos p {
     margin: 8px 0;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     color: var(--text-secondary);
 }
 
@@ -42,27 +44,27 @@
     color: var(--text-primary);
 }
 
-
-/* carrusel de inmuebles */
+/* Carrusel de Inmuebles */
 .carrusel-contenedor {
-    margin: 15px 0;
+    margin: 20px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .carrusel-principal {
     position: relative;
     width: 100%;
     max-width: 600px;
-    height: 350px;
-    background-color: #000;
+    height: 380px;
+    background-color: #0f172a;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 8px;
+    border-radius: 14px;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .carrusel-imagen-activa {
@@ -75,41 +77,44 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: var(--text-primary);
     border: none;
     font-size: 20px;
-    padding: 10px 15px;
+    padding: 10px 14px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 50%;
     user-select: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
 }
 
 .carrusel-control:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: #ffffff;
+    transform: translateY(-50%) scale(1.05);
 }
 
 .carrusel-control.prev {
-    left: 10px;
+    left: 14px;
 }
 
 .carrusel-control.next {
-    right: 10px;
+    right: 14px;
 }
 
 .carrusel-miniaturas {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     overflow-x: auto;
     max-width: 100%;
-    padding: 5px;
+    padding: 6px;
 }
 
 .miniatura {
-    width: 70px;
-    height: 50px;
+    width: 76px;
+    height: 54px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     opacity: 0.6;
     border: 2px solid transparent;
@@ -119,39 +124,40 @@
 .miniatura:hover,
 .miniatura.activa {
     opacity: 1;
-    border-color: #007bff;
+    border-color: var(--accent);
 }
 
 .sin-imagen-alerta {
-    padding: 15px;
-    background-color: #f8f9fa;
-    border: 1px dashed #ccc;
+    padding: 24px;
+    background-color: var(--bg-main);
+    border: 2px dashed var(--border-color);
     text-align: center;
-    border-radius: 6px;
-    margin: 15px 0;
+    border-radius: 12px;
+    margin: 20px 0;
+    color: var(--text-secondary);
 }
 
-/* Cabecera de la entidad dentro de la tarjeta */
+/* Cabecera de la entidad */
 .tarjeta-cabecera {
     background-color: var(--bg-main);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
     text-align: center;
 }
 
 .tarjeta-cabecera h3 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     color: var(--accent);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .calendario-ayuda {
     display: flex;
     gap: 20px;
-    margin-top: 5px;
+    margin-top: 8px;
     font-size: 0.9rem;
 }
 
@@ -162,34 +168,28 @@
 }
 
 .indicador {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     display: inline-block;
 }
 
 .indicador.disponible {
-    background-color: #28a745;
+    background-color: #10b981;
 }
 
 .indicador.ocupado {
-    background-color: #dc3545;
-}
-
-.flatpickr-day.ocupado {
-    background: #dc3545 !important;
-    border-color: #dc3545 !important;
-    color: #fff !important;
+    background-color: var(--danger);
 }
 
 .boton-icono-activar {
-    color: #4ade80 !important;
-    background-color: var(--bg-main);
-    border: 1px solid var(--border-color);
+    color: #16a34a !important;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
 }
 
 .boton-icono-activar:hover {
-    color: #22c55e !important;
-    border-color: #22c55e;
-    background-color: rgba(34, 197, 94, 0.1);
+    color: #15803d !important;
+    border-color: #16a34a;
+    background-color: #dcfce7;
 }
