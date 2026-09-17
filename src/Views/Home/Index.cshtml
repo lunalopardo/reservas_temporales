@@ -13,6 +13,43 @@
 
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
+        <div class="buscador-banner">
+            <h2>Buscador de Inmuebles</h2>
+        
+            <form asp-controller="Inmuebles" asp-action="Buscar" method="get" class="form-buscador-inline">
+            
+                <div class="grupo-filtro">
+                    <label>Tipo de Inmueble</label>
+                    <select name="idTipoInmueble" asp-items="ViewBag.TiposInmueble" class="form-control">
+                        <option value="">Todos los tipos</option>
+                    </select>
+                </div>
+
+                <div class="grupo-filtro">
+                    <label>Huéspedes (min.)</label>
+                    <select name="cupo" class="form-control">
+                        <option value="">Cualquiera</option>
+                        @for (int i = 1; i <= 10; i++)
+                        {
+                            <option value="@i">@(i == 10 ? "10+ personas" : $"{i} persona{(i > 1 ? "s" : "")}")</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="grupo-filtro">
+                    <label>Fecha Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control" required />
+                </div>
+
+                <div class="grupo-filtro">
+                    <label>Fecha Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn-card btn-buscador">Buscar Inmuebles</button>
+            </form>
+        </div>
+        
         <h1 class="home-title">Gestión de Reservas Temporales</h1>
 
         <p class="home-subtitle">

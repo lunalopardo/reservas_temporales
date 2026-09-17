@@ -55,10 +55,17 @@ namespace ReservasTemporales.Controllers
         }
 
         // GET: Reservas/Create
-        public IActionResult Create()
+        public IActionResult Create(int? idInmueble)
         {
-            CargarCombos();
-            return View();
+            CargarCombos(idInmueble);
+
+            var reserva = new Reserva();
+            if (idInmueble.HasValue)
+            {
+                reserva.IdInmueble = idInmueble.Value;
+            }
+
+            return View(reserva);
         }
 
         // POST: Reservas/Create

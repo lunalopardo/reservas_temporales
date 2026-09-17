@@ -191,14 +191,11 @@
                     .then(data => {
                         if (data && data.precio) {
                             let precioBase = parseFloat(data.precio);
-            
-                            // Usamos el porcentaje real del inmueble que viene de la BD (o 0.3 si no viene definido)
+                            
                             let porcentajeSena = data.porcentajeSena ? parseFloat(data.porcentajeSena) / 100 : 0;
-            
                             let sena = precioBase * porcentajeSena;
-                            let saldoAPagar = precioBase - sena; // Ejemplo: 15.000 - 4.500 = 10.500
+                            let saldoAPagar = precioBase - sena;
 
-                            // ASIGNAMOS EL SALDO DIARIO FINAL AL INPUT OCULTO
                             inputMonto.value = saldoAPagar;
 
                             textoDetalle.innerHTML = `El precio por día del inmueble es <strong>$${precioBase.toLocaleString()}</strong> y se dejó de seña <strong>$${sena.toLocaleString()}</strong>. El precio a pagar por día es de <strong>$${saldoAPagar.toLocaleString()}</strong>.`;
@@ -245,8 +242,23 @@
                 cargarDatosInmueble($(this).val());
             });
 
-            if ($('#IdInmueble').val()) {
-                cargarDatosInmueble($('#IdInmueble').val());
+            // CARGA INICIAL CUANDO VIENE UN ID POR LA URL DESDE "BUSCAR"
+            let idInmuebleInicial = '@Model?.IdInmueble' || $('#IdInmueble').val();
+
+            if (idInmuebleInicial && idInmuebleInicial !== "0") {
+                fetch(`/Reservas/GetPrecioInmueble?id=${idInmuebleInicial}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data) {
+                            if ($('#IdInmueble option[value="' + idInmuebleInicial + '"]').length === 0) {
+                                let option = new Option("Cargando inmueble...", idInmuebleInicial, true, true);
+                                $('#IdInmueble').append(option).trigger('change');
+                            } else {
+                                $('#IdInmueble').val(idInmuebleInicial).trigger('change');
+                            }
+                            cargarDatosInmueble(idInmuebleInicial);
+                        }
+                    });
             }
         });
     </script>

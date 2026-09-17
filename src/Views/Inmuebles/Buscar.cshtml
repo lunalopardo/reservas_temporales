@@ -1,0 +1,105 @@
+@model ReservasTemporales.Models.BusquedaInmuebleViewModel
+
+@{
+    ViewData["Title"] = "Buscar Inmuebles Disponibles";
+}
+
+<div class="container my-4">
+    <h2 class="mb-4">Buscar Inmuebles Disponibles</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Buscar" method="get">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label asp-for="IdTipoInmueble" class="form-label">Tipo de Inmueble</label>
+                        <select asp-for="IdTipoInmueble" class="form-select"
+                                asp-items="@(new SelectList(ViewBag.TiposInmueble ?? new List<ReservasTemporales.Models.TipoInmueble>(), "Id", "Nombre"))">
+                            <option value="">-- Todos los tipos --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="Personas" class="form-label">Cantidad de Personas</label>
+                        <input asp-for="Personas" class="form-control" type="number" min="1" max="50"
+                               placeholder="Ej: 2" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="FechaInicio" class="form-label">Fecha Desde</label>
+                        <input asp-for="FechaInicio" class="form-control" type="date" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="FechaFin" class="form-label">Fecha Hasta</label>
+                        <input asp-for="FechaFin" class="form-control" type="date" />
+                    </div>
+                </div>
+
+                <div class="mt-3 text-end">
+                    <button type="submit" class="boton-buscar me-2">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a asp-action="Buscar" class="boton-limpiar">Limpiar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        @if (Model?.Resultados != null && Model.Resultados.Any())
+        {
+            @foreach (var item in Model.Resultados)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrEmpty(item.Foto_portada))
+                        {
+                            <img src="@item.Foto_portada" class="card-img-top inmueble-card-img" alt="Portada de @item.Direccion" />
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title inmueble-card-title">@item.Direccion</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@(item.TipoInmueble?.Nombre ?? "Sin Tipo")</h6>
+                            
+                            <hr />
+
+                            <ul class="inmueble-card-list">
+                                <li><strong>Cupo de personas:</strong> @item.Cupo</li>
+                                <li><strong>Precio por día:</strong> $@item.Precio.ToString("N2")</li>
+                                <li><strong>Seña obligatoria:</strong> @item.PorcentajeSena%</li>
+                                @if (item.Propietario != null)
+                                {
+                                    <li><strong>Propietario:</strong> @item.Propietario.Nombre @item.Propietario.Apellido</li>
+                                }
+                            </ul>
+
+                            @if (!string.IsNullOrEmpty(item.Coord))
+                            {
+                                <p class="card-text">
+                                    <small class="text-muted"><i class="bi bi-geo-alt"></i> Coordenadas: @item.Coord</small>
+                                </p>
+                            }
+                        </div>
+                        <div class="card-footer-custom">
+                            <a asp-controller="Inmuebles" asp-action="Details" asp-route-id="@item.Id" class="boton-limpiar">
+                                Ver Detalle
+                            </a>
+                            <a asp-controller="Reservas" asp-action="Create" asp-route-idInmueble="@item.Id"
+                               class="boton-nuevo">
+                                Reservar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-warning text-center" role="alert">
+                    No se encontraron inmuebles disponibles para los criterios de búsqueda seleccionados.
+                </div>
+            </div>
+        }
+    </div>
+</div>

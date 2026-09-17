@@ -310,6 +310,57 @@ public class RepositorioInmueble : RepositorioBase
         return listado;
     }
 
+    //BARRA DE BÚSQUEDA - HOME
+    public IList<Inmueble> BuscarDisponiblesViewModel(int? idTipoInmueble, int? personas, DateTime? fechaInicio, DateTime? fechaFin)
+    {
+        var listado = new List<Inmueble>();
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"
+                        SELECT i.*, 
+                            p.nombre AS PropietarioNombre, p.apellido AS PropietarioApellido,
+                            t.nombre AS TipoNombre
+                        FROM Inmueble i
+                        INNER JOIN Propietario p ON i.id_propietario = p.id
+                        INNER JOIN TipoInmueble t ON i.id_tipo_inmueble = t.id
+                        WHERE i.activo = 1
+                        AND (@idTipo IS NULL OR i.id_tipo_inmueble = @idTipo)
+                        AND (@cupoMinimo IS NULL OR i.cupo >= @cupoMinimo)
+                        AND (@fechaDesde IS NULL OR @fechaHasta IS NULL OR NOT EXISTS (
+                            SELECT 1 FROM Reserva r
+                            WHERE r.id_inmueble = i.id
+                                AND r.activo = 1
+                                AND (r.fecha_desde < @fechaHasta AND r.fecha_hasta > @fechaDesde)
+                        ))
+                        ORDER BY i.id DESC";
+
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@idTipo", (object?)idTipoInmueble ?? DBNull.Value);
+                command.Parameters.AddWithValue("@cupoMinimo", (object?)personas ?? DBNull.Value);
+                command.Parameters.AddWithValue("@fechaDesde", (object?)fechaInicio ?? DBNull.Value);
+                command.Parameters.AddWithValue("@fechaHasta", (object?)fechaFin ?? DBNull.Value);
+
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        listado.Add(ParseInmueble(reader));
+                    }
+                }
+
+                if (listado.Any())
+                {
+                    CargarReservasParaInmuebles(connection, listado);
+                }
+            }
+        }
+
+        return listado;
+    }
+
     internal static Inmueble ParseInmueble(MySqlDataReader reader)
     {
         return new Inmueble

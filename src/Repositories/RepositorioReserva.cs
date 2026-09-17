@@ -458,5 +458,30 @@ namespace ReservasTemporales.Repositories
             }
             return lista;
         }
+
+        public IList<int> ObtenerIdsInmueblesOcupados(DateTime fechaDesde, DateTime fechaHasta)
+        {
+            var idsOcupados = new List<int>();
+            var query = @"
+                        SELECT DISTINCT id_inmueble 
+                        FROM Reserva 
+                        WHERE activo = 1 
+                        AND fecha_desde < @fechaHasta 
+                        AND fecha_hasta > @fechaDesde";
+
+            using MySqlConnection connection = new(connectionString);
+            using MySqlCommand command = new(query, connection);
+            command.Parameters.AddWithValue("@fechaDesde", fechaDesde);
+            command.Parameters.AddWithValue("@fechaHasta", fechaHasta);
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                idsOcupados.Add(reader.GetInt32("id_inmueble"));
+            }
+
+            return idsOcupados;
+        }
     }
 }

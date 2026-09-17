@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using src.Models;
 using ReservasTemporales.Models;
-using Microsoft.AspNetCore.Authorization;
+using ReservasTemporales.Repositories;
 
 namespace src.Controllers;
 
@@ -10,14 +12,21 @@ namespace src.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly RepositorioTipoInmueble _repositorioTipoInmueble;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(
+        ILogger<HomeController> logger,
+        RepositorioTipoInmueble repositorioTipoInmueble)
     {
         _logger = logger;
+        _repositorioTipoInmueble = repositorioTipoInmueble;
     }
 
     public IActionResult Index()
     {
+        var tipos = _repositorioTipoInmueble.GetAll();
+        ViewBag.TiposInmueble = new SelectList(tipos, "Id", "Nombre");
+
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
             return View();

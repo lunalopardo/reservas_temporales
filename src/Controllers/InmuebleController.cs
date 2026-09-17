@@ -149,9 +149,21 @@ namespace ReservasTemporales.Controllers
             return View(inmueble);
         }
         // Eliminar
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+
+        // GET: Inmuebles/Delete/5 (Muestra la vista de confirmación)
+        [HttpGet]
         public IActionResult Delete(int id)
+        {
+            var inmueble = _repositorioInmueble.GetById(id);
+            if (inmueble == null) return NotFound();
+
+            return View(inmueble);
+        }
+
+        [HttpPost]
+        [ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
         {
             _repositorioInmueble.DeleteLogico(id);
             return RedirectToAction(nameof(Index));
@@ -178,6 +190,28 @@ namespace ReservasTemporales.Controllers
 
             var tipos = _repositorioTipoInmueble.GetAll();
             ViewBag.IdTipoInmueble = new SelectList(tipos, "Id", "Nombre", tipoSel);
+        }
+
+        [HttpGet]
+        public IActionResult Buscar(BusquedaInmuebleViewModel model)
+        {
+            // Cargar select de tipos
+            ViewBag.TiposInmueble = _repositorioTipoInmueble.GetAll();
+
+            if (model.FechaInicio.HasValue && model.FechaFin.HasValue && model.FechaInicio >= model.FechaFin)
+            {
+                ModelState.AddModelError("FechaFin", "La fecha de fin debe ser posterior a la de inicio.");
+                return View(model);
+            }
+
+            model.Resultados = _repositorioInmueble.BuscarDisponiblesViewModel(
+                model.IdTipoInmueble,
+                model.Personas,
+                model.FechaInicio,
+                model.FechaFin
+            );
+
+            return View(model);
         }
     }
 }
