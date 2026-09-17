@@ -1,4 +1,6 @@
-﻿@{
+﻿@model ReservasTemporales.Models.LoginViewModel
+
+@{
     ViewData["Title"] = "Inicio";
 }
 
@@ -9,127 +11,107 @@
 
 <div class="home-container">
 
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <h1 class="home-title">Gestión de Reservas Temporales</h1>
 
-    <h1 class="home-title">Gestión de Reservas Temporales</h1>
+        <p class="home-subtitle">
+            Seleccioná una sección para administrar los registros del sistema.
+        </p>
 
-    <p class="home-subtitle">
-        Seleccioná una sección para administrar los registros del sistema.
-    </p>
+        <div class="cards-grid">
 
-    <div class="cards-grid">
-
-   
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">real_estate_agent</span>
+            <div class="card-item">
+                <div>
+                    <div class="card-icon">
+                        <span class="material-symbols-outlined">real_estate_agent</span>
+                    </div>
+                    <h3>Propietarios</h3>
+                    <p>Administrá el registro de propietarios de inmuebles, altas y modificaciones.</p>
                 </div>
-
-                <h3>Propietarios</h3>
-
-                <p>
-                    Administrá el registro de propietarios de inmuebles, altas y modificaciones.
-                </p>
+                <a asp-controller="Propietarios" asp-action="Index" class="btn-card">
+                    Ir a Propietarios
+                </a>
             </div>
 
-            <a asp-controller="Propietarios" asp-action="Index" class="btn-card">
-                Ir a Propietarios
-            </a>
-        </div>
-
-    
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">person</span>
+            <div class="card-item">
+                <div>
+                    <div class="card-icon">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <h3>Inquilinos</h3>
+                    <p>Gestioná la lista de inquilinos registrados, consultas de datos y estados.</p>
                 </div>
-
-                <h3>Inquilinos</h3>
-
-                <p>
-                    Gestioná la lista de inquilinos registrados, consultas de datos y estados.
-                </p>
+                <a asp-controller="Inquilinos" asp-action="Index" class="btn-card">
+                    Ir a Inquilinos
+                </a>
             </div>
 
-            <a asp-controller="Inquilinos" asp-action="Index" class="btn-card">
-                Ir a Inquilinos
-            </a>
-        </div>
-
-  
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">home</span>
+            <div class="card-item">
+                <div>
+                    <div class="card-icon">
+                        <span class="material-symbols-outlined">home</span>
+                    </div>
+                    <h3>Inmuebles</h3>
+                    <p>Administrá los inmuebles cargados, agregá nuevos y consultá información.</p>
                 </div>
-
-                <h3>Inmuebles</h3>
-
-                <p>
-                    Administrá los inmuebles cargados, agregá nuevos y consultá información.
-                </p>
+                <a asp-controller="Inmuebles" asp-action="Index" class="btn-card">
+                    Ir a Inmuebles
+                </a>
             </div>
 
-            <a asp-controller="Inmuebles" asp-action="Index" class="btn-card">
-                Ir a Inmuebles
-            </a>
-        </div>
-
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">category</span>
+            <div class="card-item">
+                <div>
+                    <div class="card-icon">
+                        <span class="material-symbols-outlined">category</span>
+                    </div>
+                    <h3>Tipos de Inmueble</h3>
+                    <p>Gestioná las categorías y tipos disponibles para clasificar los inmuebles.</p>
                 </div>
-
-                <h3>Tipos de Inmueble</h3>
-
-                <p>
-                    Gestioná las categorías y tipos disponibles para clasificar los inmuebles.
-                </p>
+                <a asp-controller="TipoInmueble" asp-action="Index" class="btn-card">
+                    Ir a Tipos de Inmueble
+                </a>
             </div>
 
-            <a asp-controller="TipoInmueble" asp-action="Index" class="btn-card">
-                Ir a Tipos de Inmueble
-            </a>
-        </div>
-
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">event</span>
+            <div class="card-item">
+                <div>
+                    <div class="card-icon">
+                        <span class="material-symbols-outlined">event</span>
+                    </div>
+                    <h3>Reservas</h3>
+                    <p>Gestioná las reservas de alquiler, fechas, inmuebles e inquilinos.</p>
                 </div>
-
-                <h3>Reservas</h3>
-
-                <p>
-                    Gestioná las reservas de alquiler, fechas, inmuebles e inquilinos.
-                </p>
+                <a asp-controller="Reservas" asp-action="Index" class="btn-card">
+                    Ir a Reservas
+                </a>
             </div>
 
-            <a asp-controller="Reservas" asp-action="Index" class="btn-card">
-                Ir a Reservas
-            </a>
-        </div>
-
-        <div class="card-item">
-            <div>
-                <div class="card-icon">
-                    <span class="material-symbols-outlined">payments</span>
+            <div class="card-item">
+                <div>
+                    <div class="card-icon">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <h3>Pagos</h3>
+                    <p>Registrá cobros, consultá el historial de pagos y administrá anulaciones.</p>
                 </div>
-
-                <h3>Pagos</h3>
-
-                <p>
-                    Registrá cobros, consultá el historial de pagos y administrá anulaciones.
-                </p>
+                <a asp-controller="Pagos" asp-action="Index" class="btn-card">
+                    Ir a Pagos
+                </a>
             </div>
 
-            <a asp-controller="Pagos" asp-action="Index" class="btn-card">
-                Ir a Pagos
-            </a>
         </div>
-
-    </div>
-
+    }
+    else
+    {
+        <div class="login-contenedor">
+            <div class="login-card">
+                <div class="login-header">
+                    <h2>Reservas temporales</h2>
+                    <p>Bienvenido de vuelta</p>
+                </div>
+                <partial name="_LoginForm" model="Model" />
+            </div>
+        </div>
+    }
 
 </div>

@@ -121,6 +121,13 @@ header nav,
     overflow: visible;
 }
 
+.formulario-contenedor input[readonly],
+input[readonly] {
+    background-color: var(--bg-main, #1a1a1a) !important;
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
 .tarjeta-detalle-corta {
     max-width: 440px;
     margin: 40px auto;

@@ -35,20 +35,26 @@ public class UsuariosController : Controller
     // POST: Login
     [AllowAnonymous]
     [HttpPost]
-    public async Task<IActionResult> Login(string nombreUsuario, string password)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
-        var usuario = _repositorioUsuario.ValidarLogin(nombreUsuario, password);
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var usuario = _repositorioUsuario.ValidarLogin(model.Email, model.Password);
 
         if (usuario != null)
         {
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-                new Claim(ClaimTypes.Name, usuario.Email),
-                new Claim("FullName", $"{usuario.Nombre} {usuario.Apellido}"),
-                new Claim(ClaimTypes.Role, usuario.RolNombre),
-                new Claim("Avatar", usuario.Avatar ?? "")
-            };
+        {
+            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new Claim(ClaimTypes.Name, usuario.Email),
+            new Claim("FullName", $"{usuario.Nombre} {usuario.Apellido}"),
+            new Claim(ClaimTypes.Role, usuario.RolNombre ?? "Usuario"),
+            new Claim("Avatar", usuario.Avatar ?? "")
+        };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -59,8 +65,9 @@ public class UsuariosController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        ViewBag.Error = "Credenciales incorrectas o usuario inactivo.";
-        return View();
+        ModelState.AddModelError(string.Empty, "Credenciales incorrectas o usuario inactivo.");
+
+        return View(model);
     }
 
     [HttpGet("Usuarios/Logout")]

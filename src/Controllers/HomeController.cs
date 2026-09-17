@@ -1,9 +1,12 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using src.Models;
+using ReservasTemporales.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace src.Controllers;
 
+[AllowAnonymous]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
@@ -15,7 +18,12 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            return View();
+        }
+
+        return View(new LoginViewModel());
     }
 
     public IActionResult Privacy()

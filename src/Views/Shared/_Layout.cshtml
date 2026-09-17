@@ -30,76 +30,87 @@
                 </button>
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Inicio</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Propietarios" asp-action="Index">Propietarios</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Inquilinos" asp-action="Index">Inquilinos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Inmuebles" asp-action="Index">Inmuebles</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="TipoInmueble" asp-action="Index">Tipos de Inmuebles</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Reservas" asp-action="Index">Reservas</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Pagos" asp-action="Index">Pagos</a>
-                        </li>
-                        @if (User.IsInRole("Administrador"))
-                        {
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
-                            </li>
-                        }
-                    </ul>
-
-                    <ul class="navbar-nav align-items-center gap-3">
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
-                            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                            var fullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
-                            var avatarUrl = User.FindFirst("Avatar")?.Value;
-
-                            <li class="nav-item d-flex align-items-center gap-2">
-                                <a class="d-flex align-items-center text-decoration-none text-dark gap-2"
-                                   href="/Perfil/@currentUserId">
-                                    @if (!string.IsNullOrEmpty(avatarUrl))
-                                    {
-                                        <img src="@avatarUrl" alt="Avatar" class="rounded-circle border"
-                                             style="width: 36px; height: 36px; object-fit: cover;" />
-                                    }
-                                    else
-                                    {
-                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
-                                             style="width: 36px; height: 36px; font-size: 14px;">
-                                            @(string.IsNullOrEmpty(fullName) ? "U" : fullName.Substring(0, 1).ToUpper())
-                                        </div>
-                                    }
-                                    <span class="fw-semibold">@fullName</span>
-                                </a>
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Inicio</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                                   asp-controller="Usuarios" asp-action="Logout">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
-                                    Cerrar Sesión
-                                </a>
+                                <a class="nav-link" asp-controller="Propietarios" asp-action="Index">Propietarios</a>
                             </li>
-                        }
-                        else
-                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Inquilinos" asp-action="Index">Inquilinos</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Inmuebles" asp-action="Index">Inmuebles</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="TipoInmueble" asp-action="Index">Tipos de Inmuebles</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Reservas" asp-action="Index">Reservas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Pagos" asp-action="Index">Pagos</a>
+                            </li>
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+                                </li>
+                            }
+                        </ul>
+
+                        <ul class="navbar-nav align-items-center gap-3">
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                var fullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
+                                var avatarUrl = User.FindFirst("Avatar")?.Value;
+
+                                <li class="nav-item d-flex align-items-center gap-2">
+                                    <a class="d-flex align-items-center text-decoration-none text-dark gap-2"
+                                       href="/Perfil/@currentUserId">
+                                        @if (!string.IsNullOrEmpty(avatarUrl))
+                                        {
+                                            <img src="@avatarUrl" alt="Avatar" class="rounded-circle border"
+                                                 style="width: 36px; height: 36px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
+                                                 style="width: 36px; height: 36px; font-size: 14px;">
+                                                @(string.IsNullOrEmpty(fullName) ? "U" : fullName.Substring(0, 1).ToUpper())
+                                            </div>
+                                        }
+                                        <span class="fw-semibold">@fullName</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                                       asp-controller="Usuarios" asp-action="Logout">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
+                                        Cerrar Sesión
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Usuarios" asp-action="Login">Iniciar Sesión</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Usuarios" asp-action="Login">Iniciar Sesión</a>
                             </li>
-                        }
-                    </ul>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ReservasTemporales.Models;
@@ -5,6 +6,7 @@ using ReservasTemporales.Repositories;
 
 namespace ReservasTemporales.Controllers
 {
+    [Authorize]
     public class ReservasController : Controller
     {
         private readonly RepositorioReserva _repositorioReserva;

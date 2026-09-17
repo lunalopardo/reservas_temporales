@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReservasTemporales.Models;
 using ReservasTemporales.Repositories;
 
 namespace ReservasTemporales.Controllers;
 
+[Authorize]
 public class PagosController : Controller
 {
     private readonly RepositorioPago _repositorioPago;

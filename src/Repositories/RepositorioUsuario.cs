@@ -8,17 +8,17 @@ public class RepositorioUsuario : RepositorioBase
     public RepositorioUsuario(IConfiguration configuration) : base(configuration) { }
 
     // Iniciar sesión
-    public Usuario? ValidarLogin(string nombreUsuario, string password)
+    public Usuario? ValidarLogin(string login, string password)
     {
         string sql = @"
-            SELECT * FROM usuario 
-            WHERE nombre_usuario = @nombreUsuario 
-              AND password = @password 
-              AND activo = 1";
+                SELECT * FROM usuario 
+                WHERE (nombre_usuario = @login OR email = @login) 
+                AND password = @password 
+                AND activo = 1";
 
         using MySqlConnection connection = new(connectionString);
         using MySqlCommand command = new(sql, connection);
-        command.Parameters.AddWithValue("@nombreUsuario", nombreUsuario);
+        command.Parameters.AddWithValue("@login", login);
         command.Parameters.AddWithValue("@password", password);
 
         connection.Open();
