@@ -53,7 +53,6 @@ namespace ReservasTemporales.Controllers
             return View();
         }
 
-
         // Editar
         public IActionResult Edit(int id)
         {
@@ -77,7 +76,7 @@ namespace ReservasTemporales.Controllers
                 // Foto de portada
                 if (archivoPortada != null && archivoPortada.Length > 0)
                 {
-                    inmueble.Foto_portada = await GuardarArchivoAsync(archivoPortada, environment);
+                    inmueble.Foto_portada = await ImagenesController.GuardarArchivoAsync(archivoPortada, environment, "Inmuebles");
                 }
 
                 // Galería de fotos
@@ -86,7 +85,7 @@ namespace ReservasTemporales.Controllers
                     var listaRutas = new List<string>();
                     foreach (var foto in archivosGaleria)
                     {
-                        var ruta = await GuardarArchivoAsync(foto, environment);
+                        var ruta = await ImagenesController.GuardarArchivoAsync(foto, environment, "Inmuebles");
                         if (!string.IsNullOrEmpty(ruta)) listaRutas.Add(ruta);
                     }
                     inmueble.Fotos = string.Join("|", listaRutas);
@@ -116,8 +115,8 @@ namespace ReservasTemporales.Controllers
                 // Mantener o reemplazar portada
                 if (archivoPortada != null && archivoPortada.Length > 0)
                 {
-                    BorrarArchivoFisico(inmuebleExistente.Foto_portada, environment);
-                    inmueble.Foto_portada = await GuardarArchivoAsync(archivoPortada, environment);
+                    ImagenesController.BorrarArchivoFisico(inmuebleExistente.Foto_portada, environment);
+                    inmueble.Foto_portada = await ImagenesController.GuardarArchivoAsync(archivoPortada, environment, "Inmuebles");
                 }
                 else
                 {
@@ -133,7 +132,7 @@ namespace ReservasTemporales.Controllers
                 {
                     foreach (var foto in archivosGaleria)
                     {
-                        var ruta = await GuardarArchivoAsync(foto, environment);
+                        var ruta = await ImagenesController.GuardarArchivoAsync(foto, environment, "Inmuebles");
                         if (!string.IsNullOrEmpty(ruta)) listaFotos.Add(ruta);
                     }
                 }
@@ -146,43 +145,6 @@ namespace ReservasTemporales.Controllers
             CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
             return View(inmueble);
         }
-
-        public static async Task<string> GuardarArchivoAsync(IFormFile archivo, IWebHostEnvironment environment, string subcarpeta = "Inmuebles")
-        {
-            if (archivo == null || archivo.Length == 0)
-                return string.Empty;
-
-            // Ruta de la carpeta wwwroot/Uploads/Inmuebles
-            string uploadsFolder = Path.Combine(environment.WebRootPath, "Uploads", subcarpeta);
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-
-            string nombreArchivo = $"{Guid.NewGuid()}{Path.GetExtension(archivo.FileName)}";
-            string rutaCompleta = Path.Combine(uploadsFolder, nombreArchivo);
-
-            using (var stream = new FileStream(rutaCompleta, FileMode.Create))
-            {
-                await archivo.CopyToAsync(stream);
-            }
-
-            // devuelve la ruta relativa para guardar en BD
-            return $"/Uploads/{subcarpeta}/{nombreArchivo}";
-        }
-
-        public static void BorrarArchivoFisico(string urlRelativa, IWebHostEnvironment environment)
-        {
-            if (string.IsNullOrEmpty(urlRelativa)) return;
-
-            // Convierte la URL relativa a ruta física en disco
-            string rutaFisica = Path.Combine(environment.WebRootPath, urlRelativa.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (System.IO.File.Exists(rutaFisica))
-            {
-                System.IO.File.Delete(rutaFisica);
-            }
-        }
-
         // Eliminar
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -201,8 +163,8 @@ namespace ReservasTemporales.Controllers
                 if (p != null)
                 {
                     var propietarioSeleccionado = new[] {
-                new { IdPropietario = p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" }
-            };
+                        new { IdPropietario = p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" }
+                    };
                     ViewBag.IdPropietario = new SelectList(propietarioSeleccionado, "IdPropietario", "NombreCompleto", propietarioSel);
                 }
             }
