@@ -10,15 +10,18 @@ namespace ReservasTemporales.Controllers
         private readonly RepositorioReserva _repositorioReserva;
         private readonly RepositorioInmueble _repositorioInmueble;
         private readonly RepositorioInquilino _repositorioInquilino;
+        private readonly RepositorioPago _repositorioPago;
 
         public ReservasController(
                 RepositorioReserva repositorioReserva,
                 RepositorioInmueble repositorioInmueble,
-                RepositorioInquilino repositorioInquilino)
+                RepositorioInquilino repositorioInquilino,
+                RepositorioPago repositorioPago)
         {
             _repositorioReserva = repositorioReserva;
             _repositorioInmueble = repositorioInmueble;
             _repositorioInquilino = repositorioInquilino;
+            _repositorioPago = repositorioPago;
         }
 
         // GET: Reservas
@@ -52,11 +55,7 @@ namespace ReservasTemporales.Controllers
         // GET: Reservas/Create
         public IActionResult Create()
         {
-            var inmuebles = _repositorioInmueble.GetParaSelect();
-            var inquilinos = _repositorioInquilino.GetParaSelect();
-
-            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion");
-            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto");
+            CargarCombos();
             return View();
         }
 
@@ -67,6 +66,20 @@ namespace ReservasTemporales.Controllers
         {
             reserva.CreadoPorUserId = 1;
             ModelState.Remove(nameof(reserva.CreadoPorUserId));
+
+            var inmueble = _repositorioInmueble.GetById(reserva.IdInmueble);
+
+            if (inmueble != null && reserva.FechaHasta > reserva.FechaDesde)
+            {
+                // Matemática del monto diario
+                reserva.MontoDiario = CalcularMontoDiarioFinal(reserva.FechaDesde, reserva.FechaHasta, inmueble.Precio, inmueble.PorcentajeSena);
+
+                ModelState.Remove(nameof(reserva.MontoDiario));
+            }
+            else if (inmueble == null)
+            {
+                ModelState.AddModelError("IdInmueble", "El inmueble seleccionado no existe.");
+            }
 
             if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.FechaDesde, reserva.FechaHasta))
             {
@@ -85,12 +98,7 @@ namespace ReservasTemporales.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var inmuebles = _repositorioInmueble.GetParaSelect();
-            var inquilinos = _repositorioInquilino.GetParaSelect();
-
-            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", reserva.IdInmueble);
-            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", reserva.IdInquilino);
-
+            CargarCombos(reserva.IdInmueble, reserva.IdInquilino);
             return View(reserva);
         }
 
@@ -103,11 +111,7 @@ namespace ReservasTemporales.Controllers
                 return NotFound();
             }
 
-            var inmuebles = _repositorioInmueble.GetParaSelect();
-            var inquilinos = _repositorioInquilino.GetParaSelect();
-
-            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", reserva.IdInmueble);
-            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", reserva.IdInquilino);
+            CargarCombos(reserva.IdInmueble, reserva.IdInquilino);
             return View(reserva);
         }
 
@@ -149,11 +153,7 @@ namespace ReservasTemporales.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var inmuebles = _repositorioInmueble.GetParaSelect();
-            var inquilinos = _repositorioInquilino.GetParaSelect();
-
-            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", reserva.IdInmueble);
-            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", reserva.IdInquilino);
+            CargarCombos(reserva.IdInmueble, reserva.IdInquilino);
             return View(reserva);
         }
 
@@ -182,12 +182,14 @@ namespace ReservasTemporales.Controllers
         [HttpGet]
         public IActionResult GetPrecioInmueble(int id)
         {
-            var precio = _repositorioReserva.GetPrecioInmueble(id);
-            if (precio == null)
+            var inmueble = _repositorioInmueble.GetById(id);
+            if (inmueble == null) return Json(null);
+
+            return Json(new
             {
-                return NotFound();
-            }
-            return Json(new { precio = precio.Value });
+                precio = inmueble.Precio,
+                porcentajeSena = inmueble.PorcentajeSena
+            });
         }
 
         [HttpGet]
@@ -195,6 +197,78 @@ namespace ReservasTemporales.Controllers
         {
             var fechas = _repositorioReserva.ObtenerFechasReservadasPorInmueble(idInmueble);
             return Json(fechas);
+        }
+
+        // FINALIZACIÓN TEMPRANA + MULTAS
+        // Método reutilizable para calcular la multa
+        private (decimal montoMulta, decimal porcentaje, int diasTranscurridos, int totalDias, decimal costoTotalOriginal)? ObtenerCalculoMulta(int idReserva, DateTime fechaTerminacion)
+        {
+            var reserva = _repositorioReserva.GetById(idReserva);
+            if (reserva == null) return null;
+
+            var inmueble = _repositorioInmueble.GetById(reserva.IdInmueble);
+            if (inmueble == null) return null;
+
+            int totalDiasOriginales = (reserva.FechaHasta - reserva.FechaDesde).Days;
+            if (totalDiasOriginales <= 0)
+            {
+                return (0m, 0m, 0, 0, 0m);
+            }
+
+            int diasTranscurridos = (fechaTerminacion - reserva.FechaDesde).Days;
+            if (diasTranscurridos < 0) diasTranscurridos = 0;
+
+            decimal costoTotalOriginal = totalDiasOriginales * inmueble.Precio;
+            bool esMenosDeLaMitad = diasTranscurridos < (totalDiasOriginales / 2.0);
+            decimal porcentajeAplicado = esMenosDeLaMitad ? 50m : 25m;
+            decimal montoMulta = costoTotalOriginal * (porcentajeAplicado / 100m);
+
+            return (montoMulta, porcentajeAplicado, diasTranscurridos, totalDiasOriginales, costoTotalOriginal);
+        }
+
+        // Cálculo preliminar para la vista
+        [HttpGet]
+        public IActionResult CalcularMultaAnticipada(int idReserva, DateTime fTerminacion)
+        {
+            var calculo = ObtenerCalculoMulta(idReserva, fTerminacion);
+            if (calculo == null) return NotFound();
+
+            var res = calculo.Value;
+            return Json(new
+            {
+                montoMulta = res.montoMulta,
+                porcentaje = res.porcentaje,
+                diasTranscurridos = res.diasTranscurridos,
+                totalDias = res.totalDias,
+                costoTotalOriginal = res.costoTotalOriginal
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TerminarAnticipadamente(int idReserva, DateTime fechaTerminacion)
+        {
+            var calculo = ObtenerCalculoMulta(idReserva, fechaTerminacion);
+            if (calculo == null) return NotFound();
+
+            var res = calculo.Value;
+
+            // Registrar en reserva la terminación anticipada
+            _repositorioReserva.FinalizarAnticipadamente(idReserva, fechaTerminacion, res.montoMulta, 1);
+
+            // Registrar el pago correspondiente
+            var pagoMulta = new Pago
+            {
+                IdReserva = idReserva,
+                Importe = res.montoMulta,
+                FechaPago = DateTime.Now,
+                Concepto = $"Multa por terminación anticipada ({res.porcentaje}%)",
+                CreadoPorUserId = 1
+            };
+            _repositorioPago.Create(pagoMulta);
+
+            TempData["Success"] = "La reserva fue terminada anticipadamente y la multa registrada en Pagos.";
+            return RedirectToAction(nameof(Index));
         }
 
         // --- ENDPOINTS AJAX PARA SELECT2 ---
@@ -206,7 +280,7 @@ namespace ReservasTemporales.Controllers
             var resultado = inmuebles.Select(i => new
             {
                 id = i.Id,
-                direccion = i.Direccion
+                text = i.Direccion
             });
             return Json(resultado);
         }
@@ -217,12 +291,50 @@ namespace ReservasTemporales.Controllers
             var inquilinos = _repositorioInquilino.GetParaSelect(q, 20);
             var resultado = inquilinos.Select(i => new
             {
-                idInquilino = i.IdInquilino,
-                nombre = i.Nombre,
-                apellido = i.Apellido,
-                dni = i.Dni
+                id = i.IdInquilino,
+                text = $"{i.Apellido}, {i.Nombre} (DNI: {i.Dni})"
             });
             return Json(resultado);
+        }
+
+        // --- MÉTODOS AUXILIARES Y DE CÁLCULO ---
+
+        private decimal CalcularMontoDiarioFinal(DateTime fechaDesde, DateTime fechaHasta, decimal precioInmueble, decimal porcentajeSena)
+        {
+            int dias = (fechaHasta - fechaDesde).Days;
+            if (dias <= 0) return 0m;
+
+            decimal precioTotalOriginal = dias * precioInmueble;
+            decimal montoSena = precioTotalOriginal * (porcentajeSena / 100m);
+
+            return (precioTotalOriginal - montoSena) / dias;
+        }
+
+        private void CargarCombos(int? idInmuebleSeleccionado = null, int? idInquilinoSeleccionado = null)
+        {
+            var inmuebles = _repositorioInmueble.GetParaSelect();
+
+            if (idInmuebleSeleccionado.HasValue && !inmuebles.Any(i => i.Id == idInmuebleSeleccionado.Value))
+            {
+                var seleccionado = _repositorioInmueble.GetById(idInmuebleSeleccionado.Value);
+                if (seleccionado != null)
+                {
+                    inmuebles.Add(seleccionado);
+                }
+            }
+
+            var inquilinos = _repositorioInquilino.GetParaSelect();
+            if (idInquilinoSeleccionado.HasValue && !inquilinos.Any(i => i.IdInquilino == idInquilinoSeleccionado.Value))
+            {
+                var seleccionadoInquilino = _repositorioInquilino.GetById(idInquilinoSeleccionado.Value);
+                if (seleccionadoInquilino != null)
+                {
+                    inquilinos.Add(seleccionadoInquilino);
+                }
+            }
+
+            ViewBag.IdInmueble = new SelectList(inmuebles, "Id", "Direccion", idInmuebleSeleccionado);
+            ViewBag.IdInquilino = new SelectList(inquilinos, "IdInquilino", "NombreCompleto", idInquilinoSeleccionado);
         }
     }
 }

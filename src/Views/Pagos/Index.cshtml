@@ -15,8 +15,10 @@
 
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-success" role="alert" style="margin-bottom: 15px;">
+        <div id="alertaMensaje" class="alert alert-success alert-dismissible fade show" role="alert"
+             style="margin-bottom: 15px;">
             @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
@@ -107,6 +109,15 @@
 
 @section Scripts {
     <script>
+
+        setTimeout(function () {
+            var alerta = document.getElementById('alertaMensaje');
+            if (alerta) {
+                var bsAlert = new bootstrap.Alert(alerta);
+                bsAlert.close();
+            }
+        }, 2000);
+
         function confirmarCambioEstado(id, estaActivo) {
             document.getElementById('pagoIdEstado').value = id;
             var modalTitulo = document.getElementById('modalTitulo');

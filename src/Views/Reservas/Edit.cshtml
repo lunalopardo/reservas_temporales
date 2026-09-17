@@ -1,7 +1,7 @@
 @model ReservasTemporales.Models.Reserva
 
 @{
-    ViewData["Title"] = "Editar reserva";
+    ViewData["Title"] = "Detalle / Editar Reserva";
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -9,171 +9,143 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 
 <div class="formulario-contenedor">
-    <h2 class="titulo-vista">Editar Reserva</h2>
+    <h2 class="titulo-vista">Detalle de Reserva</h2>
 
     <form asp-action="Edit" method="post">
         @Html.AntiForgeryToken()
 
+        <!-- Campos ocultos necesarios para el model binding -->
         <input type="hidden" asp-for="Id" id="IdReserva" />
+        <input type="hidden" asp-for="IdInmueble" />
+        <input type="hidden" asp-for="IdInquilino" />
+        <input type="hidden" asp-for="FechaDesde" />
+        <input type="hidden" asp-for="FechaHasta" />
+        <input type="hidden" asp-for="MontoDiario" />
+        <input type="hidden" asp-for="CreadoPorUserId" />
+        <input type="hidden" asp-for="Activo" />
 
         <div asp-validation-summary="ModelOnly" class="mensaje-error"></div>
 
         <div class="campo">
-            <label asp-for="IdInmueble">Inmueble</label>
-            <select asp-for="IdInmueble" asp-items="ViewBag.IdInmueble" id="IdInmueble">
-                <option value="">Seleccione un inmueble</option>
-            </select>
-            <span asp-validation-for="IdInmueble" class="mensaje-error"></span>
+            <label>Inmueble</label>
+            <input type="text" class="form-control" value="@Model.Inmueble?.Direccion" readonly />
         </div>
 
         <div class="campo">
-            <label asp-for="IdInquilino">Inquilino</label>
-            <select asp-for="IdInquilino" asp-items="ViewBag.IdInquilino">
-                <option value="">Seleccione un inquilino</option>
-            </select>
-            <span asp-validation-for="IdInquilino" class="mensaje-error"></span>
+            <label>Inquilino</label>
+            <input type="text" class="form-control" value="@Model.Inquilino?.NombreCompleto" readonly />
         </div>
 
         <div class="campo">
-            <label asp-for="FechaDesde">Fecha de inicio</label>
-            <input asp-for="FechaDesde" type="text" id="fechaDesde" value="@Model.FechaDesde.ToString("yyyy-MM-dd")" placeholder="Selecciona la fecha de inicio" autocomplete="off" />
-            
-            <div class="calendario-ayuda">
-                <span>
-                    <span class="indicador disponible"></span>
-                    Disponible
-                </span>
-                <span>
-                    <span class="indicador ocupado"></span>
-                    Reservado
-                </span>
+            <label>Fecha de inicio</label>
+            <input type="text" class="form-control" value="@Model.FechaDesde.ToString("yyyy-MM-dd")" readonly />
+        </div>
+
+        <div class="campo">
+            <label>Fecha de finalización original</label>
+            <input type="text" class="form-control" value="@Model.FechaHasta.ToString("yyyy-MM-dd")" readonly />
+        </div>
+
+        <div class="campo">
+            <label>Monto diario</label>
+            <input type="text" class="form-control" value="$@Model.MontoDiario.ToString("N2")" readonly />
+        </div>
+
+        @if (Model.FechaTerminacionAnticipada.HasValue)
+        {
+            <div class="campo" style="background-color: #fff3cd; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                <label style="color: #856404; font-weight: bold;">Reserva Terminada Anticipadamente</label>
+                <p class="mb-1"><strong>Fecha de salida:</strong>
+                    @Model.FechaTerminacionAnticipada.Value.ToString("yyyy-MM-dd")</p>
+                    <p class="mb-0"><strong>Multa Aplicada:</strong> $@Model.Multa?.ToString("N2")</p>
+                </div>
+            }
+
+            <div class="acciones" style="margin-top: 20px; display: flex; gap: 10px;">
+                @if (!Model.FechaTerminacionAnticipada.HasValue)
+                {
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal"
+                            data-bs-target="#modalTerminarAnticipadamente">
+                        Terminar antes
+                    </button>
+                }
+                <a asp-action="Index" class="boton-volver">Volver</a>
             </div>
-            <span asp-validation-for="FechaDesde" class="mensaje-error"></span>
-        </div>
+        </form>
+    </div>
 
-        <div class="campo">
-            <label asp-for="FechaHasta">Fecha de finalización</label>
-            <input asp-for="FechaHasta" type="text" id="fechaHasta" value="@Model.FechaHasta.ToString("yyyy-MM-dd")" placeholder="Selecciona la fecha de finalización" autocomplete="off" />
-            <span asp-validation-for="FechaHasta" class="mensaje-error"></span>
-        </div>
+    <!-- Modal para terminación anticipada -->
+    <div class="modal fade" id="modalTerminarAnticipadamente" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="TerminarAnticipadamente" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="idReserva" value="@Model.Id" />
 
-        <div class="campo">
-            <label asp-for="MontoDiario">Monto diario</label>
-            <input asp-for="MontoDiario" type="number" step="0.01" min="0.01" id="montoDiarioInput" />
-            <span asp-validation-for="MontoDiario" class="mensaje-error"></span>
-        </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel">Terminar Reserva Antes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
 
-        <div class="acciones">
-            <button type="submit" class="boton-guardar">Guardar cambios</button>
-            <a asp-action="Index" class="boton-volver">Cancelar</a>
-        </div>
-    </form>
-</div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="fechaTerminacion" class="form-label">Fecha efectiva de terminación</label>
+                            <input type="text" id="fechaTerminacion" name="fechaTerminacion" class="form-control"
+                                   placeholder="Seleccione la fecha" required autocomplete="off" />
+                        </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+                        <div id="contenedorResultadoMulta"
+                             style="display:none; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
+                            <p class="mb-1"><strong>Días cumplidos:</strong> <span id="lblDias">0</span> / <span
+                                id="lblTotalDias">0</span></p>
+                                <p class="mb-1"><strong>Porcentaje de multa aplicado:</strong> <span
+                                    id="lblPorcentaje">0</span>%</p>
+                                    <h4 class="mt-2 text-danger">Monto Multa: $<span id="lblMontoMulta">0.00</span></h4>
+                                </div>
+                            </div>
 
-    <!-- Flatpickr -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" id="btnConfirmarTerminacion" class="btn btn-danger" disabled>Confirmar y
+                                    registrar multa</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let fechasOcupadasSet = new Set();
-            const idReservaActual = document.getElementById("IdReserva") ? document.getElementById("IdReserva").value : 0;
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
-            const pickerDesde = flatpickr("#fechaDesde", {
-                locale: "es",
-                dateFormat: "Y-m-d",
-                minDate: "today",
-                onDayCreate: function(dObj, dStr, fp, dayElem) {
-                    let anio = dayElem.dateObj.getFullYear();
-                    let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
-                    let dia = String(dayElem.dateObj.getDate()).padStart(2, '0');
-                    let fechaIso = `${anio}-${mes}-${dia}`;
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            const idReserva = "@Model.Id";
+                            const fechaInicio = "@Model.FechaDesde.ToString("yyyy-MM-dd")";
+                            const fechaFinOriginal = "@Model.FechaHasta.ToString("yyyy-MM-dd")";
 
-                    if (fechasOcupadasSet.has(fechaIso)) {
-                        dayElem.classList.add("ocupado");
-                    }
-                }
-            });
+                            const fpTerminacion = flatpickr("#fechaTerminacion", {
+                                locale: "es",
+                                dateFormat: "Y-m-d",
+                                minDate: fechaInicio,
+                                maxDate: fechaFinOriginal,
+                                onChange: function (selectedDates, dateStr) {
+                                    if (!dateStr) return;
 
-            const pickerHasta = flatpickr("#fechaHasta", {
-                locale: "es",
-                dateFormat: "Y-m-d",
-                minDate: "today",
-                onDayCreate: function(dObj, dStr, fp, dayElem) {
-                    let anio = dayElem.dateObj.getFullYear();
-                    let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
-                    let dia = String(dayElem.dateObj.getDate()).padStart(2, '0');
-                    let fechaIso = `${anio}-${mes}-${dia}`;
+                                    fetch(`/Reservas/CalcularMultaAnticipada?idReserva=${idReserva}&fTerminacion=${dateStr}`)
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            document.getElementById("lblDias").innerText = data.diasTranscurridos;
+                                            document.getElementById("lblTotalDias").innerText = data.totalDias;
+                                            document.getElementById("lblPorcentaje").innerText = data.porcentaje;
+                                            document.getElementById("lblMontoMulta").innerText = Number(data.montoMulta).toLocaleString('es-AR', { minimumFractionDigits: 2 });
 
-                    if (fechasOcupadasSet.has(fechaIso)) {
-                        dayElem.classList.add("ocupado");
-                    }
-                }
-            });
-
-            const selectInmueble = document.getElementById("IdInmueble");
-            const inputMonto = document.getElementById("montoDiarioInput");
-
-            function cargarDatosInmueble(idInmueble) {
-                if (!idInmueble) return;
-
-                if (!inputMonto.value || inputMonto.value == "0" || inputMonto.value == "0.00") {
-                    fetch(`/Reservas/GetPrecioInmueble?id=${idInmueble}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data && data.precio) {
-                                inputMonto.value = data.precio;
-                            }
-                        })
-                        .catch(error => console.error("Error al obtener precio:", error));
-                }
-
-                fetch(`/Reservas/GetFechasReservadas?idInmueble=${idInmueble}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        fechasOcupadasSet.clear();
-                        let rangosADeshabilitar = [];
-
-                        data.forEach(rango => {
-                            if (idReservaActual && rango.id && rango.id == idReservaActual) return;
-
-                            let fDesdeStr = rango.fechaDesde.split('T')[0];
-                            let fHastaStr = rango.fechaHasta.split('T')[0];
-
-                            rangosADeshabilitar.push({ from: fDesdeStr, to: fHastaStr });
-
-                            let currDate = new Date(fDesdeStr + 'T00:00:00');
-                            let endDate = new Date(fHastaStr + 'T00:00:00');
-
-                            while(currDate <= endDate) {
-                                let anio = currDate.getFullYear();
-                                let mes = String(currDate.getMonth() + 1).padStart(2, '0');
-                                let dia = String(currDate.getDate()).padStart(2, '0');
-                                fechasOcupadasSet.add(`${anio}-${mes}-${dia}`);
-                                currDate.setDate(currDate.getDate() + 1);
-                            }
+                                            document.getElementById("contenedorResultadoMulta").style.display = "block";
+                                            document.getElementById("btnConfirmarTerminacion").disabled = false;
+                                        })
+                                        .catch(err => console.error("Error al calcular multa:", err));
+                                }
+                            });
                         });
-
-                        pickerDesde.set("disable", rangosADeshabilitar);
-                        pickerHasta.set("disable", rangosADeshabilitar);
-                        pickerDesde.redraw();
-                        pickerHasta.redraw();
-                    })
-                    .catch(error => console.error("Error al obtener fechas:", error));
-            }
-
-            selectInmueble.addEventListener("change", function () {
-                cargarDatosInmueble(this.value);
-            });
-
-            if (selectInmueble.value) {
-                cargarDatosInmueble(selectInmueble.value);
-            }
-        });
-    </script>
-}
+                    </script>
+                }

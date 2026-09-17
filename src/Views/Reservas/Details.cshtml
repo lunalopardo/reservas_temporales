@@ -27,6 +27,22 @@
         <dt class="col-sm-3">Fecha de finalización</dt>
         <dd class="col-sm-9">@Model.FechaHasta.ToString("dd/MM/yyyy")</dd>
 
+        @if (Model.FechaTerminacionAnticipada.HasValue)
+        {
+            <dt class="col-sm-3 text-warning">Finalización anticipada</dt>
+            <dd class="col-sm-9 fw-bold text-warning">
+                @Model.FechaTerminacionAnticipada.Value.ToString("dd/MM/yyyy")
+            </dd>
+
+            @if (Model.Multa.HasValue)
+            {
+                <dt class="col-sm-3 text-danger">Multa aplicada</dt>
+                <dd class="col-sm-9 text-danger fw-bold">
+                    $ @Model.Multa.Value.ToString("N2")
+                </dd>
+            }
+        }
+
         <dt class="col-sm-3">Monto diario</dt>
         <dd class="col-sm-9">$ @Model.MontoDiario.ToString("N2")</dd>
 
@@ -44,7 +60,7 @@
     </dl>
 
     <div class="acciones mt-3">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="boton-guardar">Editar</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="boton-guardar">Editar / Gestionar</a>
         <a asp-action="Index" class="boton-volver">Volver al listado</a>
     </div>
 </div>

@@ -16,19 +16,19 @@ namespace ReservasTemporales.Repositories
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
-            SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, r.monto_diario, r.creado_por_user_id, r.terminado_por_user_id, r.activo,
-                   i.id AS inmueble_id, i.direccion AS inmueble_direccion, i.precio AS inmueble_precio, i.activo AS inmueble_activo,
-                   iq.id AS inquilino_id, iq.nombre AS inquilino_nombre, iq.apellido AS inquilino_apellido, iq.dni AS inquilino_dni, iq.email AS inquilino_email, iq.telefono AS inquilino_telefono, iq.activo AS inquilino_activo
-            FROM Reserva r
-            INNER JOIN Inmueble i ON r.id_inmueble = i.id
-            INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
-            WHERE r.activo = 1 
-              AND (@buscar IS NULL OR i.direccion LIKE @buscar 
-                                   OR iq.nombre LIKE @buscar 
-                                   OR iq.apellido LIKE @buscar 
-                                   OR iq.dni LIKE @buscar)
-            ORDER BY r.id DESC
-            LIMIT @limit OFFSET @offset";
+                            SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, r.monto_diario, r.fecha_terminacion_anticipada, r.multa, r.creado_por_user_id, r.terminado_por_user_id, r.activo,
+                                i.id AS inmueble_id, i.direccion AS inmueble_direccion, i.precio AS inmueble_precio, i.activo AS inmueble_activo,
+                                iq.id AS inquilino_id, iq.nombre AS inquilino_nombre, iq.apellido AS inquilino_apellido, iq.dni AS inquilino_dni, iq.email AS inquilino_email, iq.telefono AS inquilino_telefono, iq.activo AS inquilino_activo
+                            FROM Reserva r
+                            INNER JOIN Inmueble i ON r.id_inmueble = i.id
+                            INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
+                            WHERE r.activo = 1 
+                            AND (@buscar IS NULL OR i.direccion LIKE @buscar 
+                                                OR iq.nombre LIKE @buscar 
+                                                OR iq.apellido LIKE @buscar 
+                                                OR iq.dni LIKE @buscar)
+                            ORDER BY r.id DESC
+                            LIMIT @limit OFFSET @offset";
 
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -86,7 +86,7 @@ namespace ReservasTemporales.Repositories
         {
             var listado = new List<Reserva>();
             var query = @"
-                SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, r.monto_diario, r.creado_por_user_id, r.terminado_por_user_id, r.activo,
+                SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, r.monto_diario, r.fecha_terminacion_anticipada, r.multa, r.creado_por_user_id, r.terminado_por_user_id, r.activo,
                        i.id AS inmueble_id, i.direccion AS inmueble_direccion, i.precio AS inmueble_precio, i.activo AS inmueble_activo,
                        iq.id AS inquilino_id, iq.nombre AS inquilino_nombre, iq.apellido AS inquilino_apellido, iq.dni AS inquilino_dni, iq.email AS inquilino_email, iq.telefono AS inquilino_telefono, iq.activo AS inquilino_activo
                 FROM Reserva r
@@ -110,13 +110,15 @@ namespace ReservasTemporales.Repositories
         public Reserva? GetById(int id)
         {
             var query = @"
-                SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, r.monto_diario, r.creado_por_user_id, r.terminado_por_user_id, r.activo,
-                       i.id AS inmueble_id, i.direccion AS inmueble_direccion, i.precio AS inmueble_precio, i.activo AS inmueble_activo,
-                       iq.id AS inquilino_id, iq.nombre AS inquilino_nombre, iq.apellido AS inquilino_apellido, iq.dni AS inquilino_dni, iq.email AS inquilino_email, iq.telefono AS inquilino_telefono, iq.activo AS inquilino_activo
-                FROM Reserva r
-                INNER JOIN Inmueble i ON r.id_inmueble = i.id
-                INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
-                WHERE r.id = @id";
+                        SELECT r.id, r.id_inmueble, r.id_inquilino, r.fecha_desde, r.fecha_hasta, 
+                            r.fecha_terminacion_anticipada, r.multa, r.monto_diario, 
+                            r.creado_por_user_id, r.terminado_por_user_id, r.activo,
+                            i.id AS inmueble_id, i.direccion AS inmueble_direccion, i.precio AS inmueble_precio, i.activo AS inmueble_activo,
+                            iq.id AS inquilino_id, iq.nombre AS inquilino_nombre, iq.apellido AS inquilino_apellido, iq.dni AS inquilino_dni, iq.email AS inquilino_email, iq.telefono AS inquilino_telefono, iq.activo AS inquilino_activo
+                        FROM Reserva r
+                        INNER JOIN Inmueble i ON r.id_inmueble = i.id
+                        INNER JOIN Inquilino iq ON r.id_inquilino = iq.id
+                        WHERE r.id = @id";
 
             using MySqlConnection connection = new(connectionString);
             using MySqlCommand command = new(query, connection);
@@ -155,12 +157,15 @@ namespace ReservasTemporales.Repositories
 
         public int Create(Reserva reserva)
         {
-            var query = @"
-                INSERT INTO Reserva (id_inmueble, id_inquilino, fecha_desde, fecha_hasta, monto_diario, creado_por_user_id, activo) 
-                VALUES (@idInmueble, @idInquilino, @fechaDesde, @fechaHasta, @montoDiario, @creadoPorUserId, 1)";
+            string query = @"INSERT INTO Reserva 
+            (id_inmueble, id_inquilino, fecha_desde, fecha_hasta, monto_diario, creado_por_user_id, activo)
+            VALUES 
+            (@idInmueble, @idInquilino, @fechaDesde, @fechaHasta, @montoDiario, @creadoPorUserId, 1);
+            SELECT LAST_INSERT_ID();";
 
             using MySqlConnection connection = new(connectionString);
             using MySqlCommand command = new(query, connection);
+
             command.Parameters.AddWithValue("@idInmueble", reserva.IdInmueble);
             command.Parameters.AddWithValue("@idInquilino", reserva.IdInquilino);
             command.Parameters.AddWithValue("@fechaDesde", reserva.FechaDesde);
@@ -169,28 +174,51 @@ namespace ReservasTemporales.Repositories
             command.Parameters.AddWithValue("@creadoPorUserId", (object?)reserva.CreadoPorUserId ?? DBNull.Value);
 
             connection.Open();
-            return command.ExecuteNonQuery();
+            reserva.Id = Convert.ToInt32(command.ExecuteScalar());
+            return reserva.Id;
         }
 
         public int Update(Reserva reserva)
         {
-            var query = @"
-                UPDATE Reserva 
-                SET id_inmueble = @idInmueble, 
-                    id_inquilino = @idInquilino, 
-                    fecha_desde = @fechaDesde, 
-                    fecha_hasta = @fechaHasta,
-                    monto_diario = @montoDiario
-                WHERE id = @id";
+            string query = @"
+            UPDATE Reserva 
+            SET id_inmueble = @idInmueble, 
+                id_inquilino = @idInquilino, 
+                fecha_desde = @fechaDesde, 
+                fecha_hasta = @fechaHasta, 
+                monto_diario = @montoDiario 
+            WHERE id = @id;";
 
             using MySqlConnection connection = new(connectionString);
             using MySqlCommand command = new(query, connection);
-            command.Parameters.AddWithValue("@id", reserva.Id);
+
             command.Parameters.AddWithValue("@idInmueble", reserva.IdInmueble);
             command.Parameters.AddWithValue("@idInquilino", reserva.IdInquilino);
             command.Parameters.AddWithValue("@fechaDesde", reserva.FechaDesde);
             command.Parameters.AddWithValue("@fechaHasta", reserva.FechaHasta);
             command.Parameters.AddWithValue("@montoDiario", reserva.MontoDiario);
+            command.Parameters.AddWithValue("@id", reserva.Id);
+
+            connection.Open();
+            return command.ExecuteNonQuery();
+        }
+
+        public int FinalizarAnticipadamente(int idReserva, DateTime fechaTerminacion, decimal multa, int terminadoPorUserId)
+        {
+            string query = @"UPDATE Reserva SET 
+                            fecha_terminacion_anticipada = @fechaTerminacion, 
+                            multa = @multa,
+                            terminado_por_user_id = @terminadoPorUserId,
+                            activo = 1
+                            WHERE id = @id;";
+
+            using MySqlConnection connection = new(connectionString);
+            using MySqlCommand command = new(query, connection);
+
+            command.Parameters.AddWithValue("@fechaTerminacion", fechaTerminacion);
+            command.Parameters.AddWithValue("@multa", multa);
+            command.Parameters.AddWithValue("@terminadoPorUserId", terminadoPorUserId);
+            command.Parameters.AddWithValue("@id", idReserva);
 
             connection.Open();
             return command.ExecuteNonQuery();
@@ -315,7 +343,7 @@ namespace ReservasTemporales.Repositories
             return null;
         }
 
-        private static Reserva ParseReserva(MySqlDataReader reader)
+        private Reserva ParseReserva(MySqlDataReader reader)
         {
             return new Reserva
             {
@@ -324,9 +352,20 @@ namespace ReservasTemporales.Repositories
                 IdInquilino = reader.GetInt32("id_inquilino"),
                 FechaDesde = reader.GetDateTime("fecha_desde"),
                 FechaHasta = reader.GetDateTime("fecha_hasta"),
+                FechaTerminacionAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_terminacion_anticipada"))
+                    ? null
+                    : reader.GetDateTime("fecha_terminacion_anticipada"),
+
+                Multa = reader.IsDBNull(reader.GetOrdinal("multa"))
+                    ? null
+                    : reader.GetDecimal("multa"),
+
                 MontoDiario = reader.GetDecimal("monto_diario"),
-                CreadoPorUserId = reader.IsDBNull(reader.GetOrdinal("creado_por_user_id")) ? null : reader.GetInt32("creado_por_user_id"),
-                TerminadoPorUserId = reader.IsDBNull(reader.GetOrdinal("terminado_por_user_id")) ? null : reader.GetInt32("terminado_por_user_id"),
+                CreadoPorUserId = reader.GetInt32("creado_por_user_id"),
+                TerminadoPorUserId = reader.IsDBNull(reader.GetOrdinal("terminado_por_user_id"))
+                    ? null
+                    : reader.GetInt32("terminado_por_user_id"),
+
                 Activo = reader.GetBoolean("activo"),
                 Inmueble = new Inmueble
                 {
@@ -342,7 +381,7 @@ namespace ReservasTemporales.Repositories
                     Apellido = reader.GetString("inquilino_apellido"),
                     Dni = reader.GetString("inquilino_dni"),
                     Email = reader.GetString("inquilino_email"),
-                    Telefono = reader.IsDBNull(reader.GetOrdinal("inquilino_telefono")) ? string.Empty : reader.GetString("inquilino_telefono"),
+                    Telefono = reader.GetString("inquilino_telefono"),
                     Activo = reader.GetBoolean("inquilino_activo")
                 }
             };

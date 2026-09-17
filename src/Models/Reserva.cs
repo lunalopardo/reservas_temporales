@@ -32,7 +32,7 @@ namespace ReservasTemporales.Models
         [Column("fecha_desde")]
         [DataType(DataType.Date)]
         public DateTime FechaDesde { get; set; }
-
+        
 
         [Required(ErrorMessage = "La fecha de finalizacion es obligatoria.")]
         [Display(Name = "Fecha de finalización")]
@@ -63,5 +63,15 @@ namespace ReservasTemporales.Models
         [Display(Name = "Activa")]
         [Column("activo")]
         public bool Activo { get; set; } = true;
+
+        // Campos para terminación anticipada
+        [Display(Name = "Fecha de terminación anticipada")]
+        [Column("fecha_terminacion_anticipada")]
+        [DataType(DataType.Date)]
+        public DateTime? FechaTerminacionAnticipada { get; set; }
+
+        [Display(Name = "Multa")]
+        [Column("multa", TypeName = "decimal(12,2)")]
+        public decimal? Multa { get; set; }
     }
 }
