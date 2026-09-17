@@ -1,10 +1,28 @@
 using ReservasTemporales.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Usuarios/Login";
+        options.LogoutPath = "/Usuarios/Logout";
+        options.AccessDeniedPath = "/Usuarios/Restringido";
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Administrador", policy =>
+        policy.RequireClaim(ClaimTypes.Role, "Administrador")
+    );
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddScoped<RepositorioUsuario>();
 builder.Services.AddScoped<RepositorioInquilino>();
 builder.Services.AddScoped<RepositorioPropietario>();
 builder.Services.AddScoped<RepositorioTipoInmueble>();
@@ -27,6 +45,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

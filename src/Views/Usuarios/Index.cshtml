@@ -1,0 +1,84 @@
+@model IEnumerable<ReservasTemporales.Models.Usuario>
+@{
+    ViewData["Title"] = "Listado de Usuarios";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/formularios.css" />
+}
+
+<div class="contenedor-principal">
+    <div class="encabezado-tabla">
+        <h3 style="margin: 0;">Listado de Usuarios</h3>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div id="alerta-mensaje" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; text-align: center; margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: opacity 0.5s ease;">
+            @TempData["Mensaje"]
+        </div>
+    }
+
+    <div style="overflow-x: auto;">
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Avatar</th>
+                    <th>Usuario</th>
+                    <th>Nombre y Apellido</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var usuario in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(usuario.Avatar))
+                            {
+                                <img src="@usuario.Avatar" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--bg-hover); color: var(--text-primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid var(--border-color);">
+                                    @(string.IsNullOrEmpty(usuario.Nombre) ? "U" : usuario.Nombre.Substring(0, 1).ToUpper())
+                                </div>
+                            }
+                        </td>
+                        <td style="font-weight: 600;">@usuario.NombreUsuario</td>
+                        <td>@usuario.Nombre @usuario.Apellido</td>
+                        <td>@usuario.Email</td>
+                        <td>
+                            <span class="perfil-badge">
+                                @usuario.RolNombre
+                            </span>
+                        </td>
+                        <td>
+                            @if (usuario.Activo)
+                            {
+                                <span style="color: #16a34a; font-weight: 600;">Activo</span>
+                            }
+                            else
+                            {
+                                <span style="color: var(--danger); font-weight: 600;">Inactivo</span>
+                            }
+                        </td>
+                        <td class="columna-acciones">
+                            <a asp-action="Perfil" asp-route-id="@usuario.Id" class="boton-limpiar" style="padding: 6px 12px; font-size: 13px;">
+                                Ver Perfil
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+   <script src="~/js/alert.js" asp-append-version="true"></script>
+}

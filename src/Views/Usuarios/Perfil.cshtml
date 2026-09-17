@@ -1,0 +1,165 @@
+@using ReservasTemporales.Models
+@model ReservasTemporales.Models.Usuario
+@{
+    ViewData["Title"] = "Perfil de Usuario";
+    int currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+    bool esMiPerfil = (Model.Id == currentUserId);
+    bool esAdmin = User.IsInRole("Administrador");
+    var mensaje = ViewBag.Mensaje ?? TempData["Mensaje"];
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/formularios.css" />
+}
+
+<div class="formulario-contenedor">
+    
+    <div class="tarjeta-cabecera" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>@(esMiPerfil ? "Mi Perfil" : $"Perfil de {Model.NombreUsuario}")</h3>
+        <span class="perfil-badge">
+            @(Model.Rol == 1 ? "Administrador" : "Empleado")
+        </span>
+    </div>
+
+    @if (!Model.Activo)
+    {
+        <div class="detalle-datos"
+             style="background-color: #fef2f2; border-color: #fecaca; color: #991b1b; text-align: center; font-weight: bold;">
+            Este usuario se encuentra inactivo en el sistema.
+        </div>
+    }
+
+    @if (mensaje != null)
+    {
+        <div id="alerta-mensaje" class="detalle-datos"
+             style="background-color: #f0fdf4; border-color: #bbf7d0; color: #15803d; text-align: center; transition: opacity 0.5s ease;">
+            @mensaje
+        </div>
+    }
+
+    <form asp-controller="Usuarios" asp-action="Perfil" asp-route-id="@Model.Id" method="post"
+          enctype="multipart/form-data">
+        
+        <div class="perfil-avatar-box">
+            <img id="imgPreview" src="@(string.IsNullOrEmpty(Model.Avatar) ? "#" : Model.Avatar)"
+                 class="perfil-avatar-img @(string.IsNullOrEmpty(Model.Avatar) ? "is-hidden" : "")" />
+
+            <div id="avatarPlaceholder"
+                 class="perfil-avatar-placeholder @(!string.IsNullOrEmpty(Model.Avatar) ? "is-hidden" : "")">
+                @(string.IsNullOrEmpty(Model.Nombre) ? "U" : Model.Nombre.Substring(0, 1).ToUpper())
+            </div>
+
+            @if (Model.Activo)
+            {
+                <div>
+                    <label for="avatarFile" class="boton-limpiar" style="cursor: pointer;">
+                        Cambiar Foto de Perfil
+                    </label>
+                    <input type="file" id="avatarFile" name="avatarFile" accept="image/*" class="is-hidden"
+                           onchange="previewImage(event)">
+                </div>
+            }
+        </div>
+
+        <div class="perfil-grid-2">
+            <div class="campo">
+                <label>Nombre de Usuario</label>
+                <input type="text" value="@Model.NombreUsuario" disabled style="background-color: var(--bg-main);" />
+            </div>
+            <div class="campo">
+                <label asp-for="Email">Correo Electrónico</label>
+                <input asp-for="Email" type="email" required disabled="@(!Model.Activo)" />
+            </div>
+        </div>
+
+        <div class="perfil-grid-2">
+            <div class="campo">
+                <label asp-for="Nombre">Nombre</label>
+                <input asp-for="Nombre" type="text" required disabled="@(!Model.Activo)" />
+            </div>
+            <div class="campo">
+                <label asp-for="Apellido">Apellido</label>
+                <input asp-for="Apellido" type="text" required disabled="@(!Model.Activo)" />
+            </div>
+        </div>
+
+        <div class="campo">
+            <label asp-for="Password">Contraseña</label>
+            <input asp-for="Password" type="password" placeholder="Dejar en blanco para mantener la actual"
+                   disabled="@(!Model.Activo)" />
+        </div>
+
+        <div class="perfil-acciones">
+            <a href="javascript:history.back()" class="boton-volver">Volver</a>
+            @if (Model.Activo)
+            {
+                <button type="submit" class="boton-guardar">Guardar Cambios</button>
+            }
+        </div>
+
+    </form>
+
+    @if (esAdmin && !esMiPerfil)
+    {
+        if (Model.Activo)
+        {
+            <!-- desactivar empleados (solo admin) -->
+            <div class="detalle-datos"
+                 style="margin-top: 32px; border-color: #fecaca; background-color: #fef2f2; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="color: var(--danger);">Dar de baja empleado</strong>
+                    <p style="margin: 4px 0 0 0; font-size: 14px;">Esta acción desactivará al usuario del sistema.</p>
+                </div>
+                <form asp-controller="Usuarios" asp-action="Eliminar" asp-route-id="@Model.Id" method="post"
+                      onsubmit="return confirm('¿Está seguro de que desea desactivar a este usuario?');">
+                    <button type="submit" class="boton-eliminar">Eliminar</button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <!-- reactivar empleado -->
+            <div class="detalle-datos"
+                 style="margin-top: 32px; border-color: #bbf7d0; background-color: #f0fdf4; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="color: #15803d;">Reactivar empleado</strong>
+                    <p style="margin: 4px 0 0 0; font-size: 14px;">Esta acción le devolverá el acceso al sistema a este usuario.
+                    </p>
+                </div>
+                <form asp-controller="Usuarios" asp-action="Reactivar" asp-route-id="@Model.Id" method="post"
+                      onsubmit="return confirm('¿Está seguro de que desea reactivar a este usuario?');">
+                    <button type="submit" class="boton-guardar"
+                            style="background-color: #16a34a; border-color: #16a34a;">Reactivar Empleado</button>
+                </form>
+            </div>
+        }
+    }
+
+</div>
+
+@section Scripts {
+    <script src="~/js/alert.js" asp-append-version="true"></script>
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const imgPreview = document.getElementById('imgPreview');
+                    const placeholder = document.getElementById('avatarPlaceholder');
+
+                    imgPreview.src = e.target.result;
+                    imgPreview.classList.remove('is-hidden');
+
+                    if (placeholder) {
+                        placeholder.classList.add('is-hidden');
+                    }
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}
