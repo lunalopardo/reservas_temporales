@@ -53,35 +53,6 @@ namespace ReservasTemporales.Controllers
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Inmueble inmueble, IFormFile? archivoPortada, List<IFormFile>? archivosGaleria)
-        {
-            if (ModelState.IsValid)
-            {
-                if (archivoPortada != null && archivoPortada.Length > 0)
-                {
-                    inmueble.Foto_portada = await ImagenesController.ProcessBase64Async(archivoPortada);
-                }
-
-                if (archivosGaleria != null && archivosGaleria.Any())
-                {
-                    var fotosBase64 = new List<string>();
-                    foreach (var foto in archivosGaleria)
-                    {
-                        var b64 = await ImagenesController.ProcessBase64Async(foto);
-                        if (!string.IsNullOrEmpty(b64)) fotosBase64.Add(b64);
-                    }
-                    inmueble.Fotos = string.Join("|", fotosBase64);
-                }
-
-                _repositorioInmueble.Create(inmueble);
-                return RedirectToAction(nameof(Index));
-            }
-
-            CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
-            return View(inmueble);
-        }
 
         // Editar
         public IActionResult Edit(int id)
@@ -95,7 +66,47 @@ namespace ReservasTemporales.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Inmueble inmueble, IFormFile? archivoPortada, List<IFormFile>? archivosGaleria)
+        public async Task<IActionResult> Create(
+            Inmueble inmueble,
+            IFormFile? archivoPortada,
+            List<IFormFile>? archivosGaleria,
+            [FromServices] IWebHostEnvironment environment)
+        {
+            if (ModelState.IsValid)
+            {
+                // Foto de portada
+                if (archivoPortada != null && archivoPortada.Length > 0)
+                {
+                    inmueble.Foto_portada = await GuardarArchivoAsync(archivoPortada, environment);
+                }
+
+                // Galería de fotos
+                if (archivosGaleria != null && archivosGaleria.Any())
+                {
+                    var listaRutas = new List<string>();
+                    foreach (var foto in archivosGaleria)
+                    {
+                        var ruta = await GuardarArchivoAsync(foto, environment);
+                        if (!string.IsNullOrEmpty(ruta)) listaRutas.Add(ruta);
+                    }
+                    inmueble.Fotos = string.Join("|", listaRutas);
+                }
+
+                _repositorioInmueble.Create(inmueble);
+                return RedirectToAction(nameof(Index));
+            }
+
+            CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
+            return View(inmueble);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(
+            Inmueble inmueble,
+            IFormFile? archivoPortada,
+            List<IFormFile>? archivosGaleria,
+            [FromServices] IWebHostEnvironment environment)
         {
             if (ModelState.IsValid)
             {
@@ -105,7 +116,8 @@ namespace ReservasTemporales.Controllers
                 // Mantener o reemplazar portada
                 if (archivoPortada != null && archivoPortada.Length > 0)
                 {
-                    inmueble.Foto_portada = await ImagenesController.ProcessBase64Async(archivoPortada);
+                    BorrarArchivoFisico(inmuebleExistente.Foto_portada, environment);
+                    inmueble.Foto_portada = await GuardarArchivoAsync(archivoPortada, environment);
                 }
                 else
                 {
@@ -121,8 +133,8 @@ namespace ReservasTemporales.Controllers
                 {
                     foreach (var foto in archivosGaleria)
                     {
-                        var b64 = await ImagenesController.ProcessBase64Async(foto);
-                        if (!string.IsNullOrEmpty(b64)) listaFotos.Add(b64);
+                        var ruta = await GuardarArchivoAsync(foto, environment);
+                        if (!string.IsNullOrEmpty(ruta)) listaFotos.Add(ruta);
                     }
                 }
                 inmueble.Fotos = string.Join("|", listaFotos);
@@ -133,6 +145,42 @@ namespace ReservasTemporales.Controllers
 
             CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
             return View(inmueble);
+        }
+
+        public static async Task<string> GuardarArchivoAsync(IFormFile archivo, IWebHostEnvironment environment, string subcarpeta = "Inmuebles")
+        {
+            if (archivo == null || archivo.Length == 0)
+                return string.Empty;
+
+            // Ruta de la carpeta wwwroot/Uploads/Inmuebles
+            string uploadsFolder = Path.Combine(environment.WebRootPath, "Uploads", subcarpeta);
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            string nombreArchivo = $"{Guid.NewGuid()}{Path.GetExtension(archivo.FileName)}";
+            string rutaCompleta = Path.Combine(uploadsFolder, nombreArchivo);
+
+            using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+            {
+                await archivo.CopyToAsync(stream);
+            }
+
+            // devuelve la ruta relativa para guardar en BD
+            return $"/Uploads/{subcarpeta}/{nombreArchivo}";
+        }
+
+        public static void BorrarArchivoFisico(string urlRelativa, IWebHostEnvironment environment)
+        {
+            if (string.IsNullOrEmpty(urlRelativa)) return;
+
+            // Convierte la URL relativa a ruta física en disco
+            string rutaFisica = Path.Combine(environment.WebRootPath, urlRelativa.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (System.IO.File.Exists(rutaFisica))
+            {
+                System.IO.File.Delete(rutaFisica);
+            }
         }
 
         // Eliminar
