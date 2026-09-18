@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -24,6 +25,15 @@ namespace ReservasTemporales.Controllers
             _repositorioInmueble = repositorioInmueble;
             _repositorioInquilino = repositorioInquilino;
             _repositorioPago = repositorioPago;
+        }
+
+        private int ObtenerUsuarioIdActual()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                          ?? User.FindFirst("Id")?.Value 
+                          ?? User.FindFirst("UserId")?.Value;
+
+            return int.TryParse(idClaim, out int id) ? id : 0;
         }
 
         // GET: Reservas
@@ -73,7 +83,8 @@ namespace ReservasTemporales.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Reserva reserva)
         {
-            reserva.CreadoPorUserId = 1;
+            // Asignar id del usuario autenticado actual
+            reserva.CreadoPorUserId = ObtenerUsuarioIdActual();
             ModelState.Remove(nameof(reserva.CreadoPorUserId));
 
             var inmueble = _repositorioInmueble.GetById(reserva.IdInmueble);
@@ -209,7 +220,6 @@ namespace ReservasTemporales.Controllers
         }
 
         // FINALIZACIÓN TEMPRANA + MULTAS
-        // Método reutilizable para calcular la multa
         private (decimal montoMulta, decimal porcentaje, int diasTranscurridos, int totalDias, decimal costoTotalOriginal)? ObtenerCalculoMulta(int idReserva, DateTime fechaTerminacion)
         {
             var reserva = _repositorioReserva.GetById(idReserva);
@@ -261,18 +271,19 @@ namespace ReservasTemporales.Controllers
             if (calculo == null) return NotFound();
 
             var res = calculo.Value;
+            int usuarioId = ObtenerUsuarioIdActual();
 
-            // Registrar en reserva la terminación anticipada
-            _repositorioReserva.FinalizarAnticipadamente(idReserva, fechaTerminacion, res.montoMulta, 1);
+            // Registrar en reserva la terminación anticipada enviando el usuarioId logueado
+            _repositorioReserva.FinalizarAnticipadamente(idReserva, fechaTerminacion, res.montoMulta, usuarioId);
 
-            // Registrar el pago correspondiente
+            // Registrar el pago correspondiente asignando también el usuarioId
             var pagoMulta = new Pago
             {
                 IdReserva = idReserva,
                 Importe = res.montoMulta,
                 FechaPago = DateTime.Now,
                 Concepto = $"Multa por terminación anticipada ({res.porcentaje}%)",
-                CreadoPorUserId = 1
+                CreadoPorUserId = usuarioId
             };
             _repositorioPago.Create(pagoMulta);
 

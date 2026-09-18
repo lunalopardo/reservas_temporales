@@ -22,6 +22,19 @@
         <p><strong>Fecha de Pago:</strong> @Model.FechaPago.ToString("dd/MM/yyyy")</p>
         <p><strong>Importe:</strong> @Model.Importe.ToString("C")</p>
         <p><strong>Estado:</strong> @(Model.Activo ? "Activo" : "Anulado")</p>
+
+        @if (User.IsInRole("Administrador") || User.FindFirst("Rol")?.Value == "1")
+        {
+            <hr />
+            <div class="auditoria-sec bg-light p-3 rounded">
+                <p class="text-muted mb-1"><small><strong>Información de Auditoría</strong></small></p>
+                <p class="mb-1"><strong>Creado por (ID):</strong> @Model.CreadoPorUserId</p>
+                @if (!Model.Activo && Model.AnuladoPorUserId.HasValue)
+                {
+                    <p class="mb-0 text-danger"><strong>Anulado por (ID):</strong> @Model.AnuladoPorUserId.Value</p>
+                }
+            </div>
+        }
     </div>
 
     <div class="acciones">

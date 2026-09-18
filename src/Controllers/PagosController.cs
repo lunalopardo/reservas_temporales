@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReservasTemporales.Models;
@@ -15,6 +16,15 @@ public class PagosController : Controller
     {
         _repositorioPago = repositorioPago;
         _repositorioReserva = repositorioReserva;
+    }
+
+    private int ObtenerUsuarioIdActual()
+    {
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                      ?? User.FindFirst("Id")?.Value 
+                      ?? User.FindFirst("UserId")?.Value;
+
+        return int.TryParse(idClaim, out int id) ? id : 0;
     }
 
     // GET: Pagos
@@ -58,8 +68,9 @@ public class PagosController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Create(Pago pago)
     {
-        // Asignación hardcodeada del usuario creador (hasta que implemente la autenticación)
-        pago.CreadoPorUserId = 1;
+        // Se asigna dinámicamente el usuario logueado
+        pago.CreadoPorUserId = ObtenerUsuarioIdActual();
+        ModelState.Remove(nameof(pago.CreadoPorUserId));
 
         if (ModelState.IsValid)
         {
@@ -119,7 +130,13 @@ public class PagosController : Controller
             return NotFound();
         }
 
-        _repositorioPago.AnularLogico(id);
+        int usuarioId = ObtenerUsuarioIdActual();
+
+        // Si tu método AnularLogico acepta el id del usuario que anula:
+        // _repositorioPago.AnularLogico(id, usuarioId);
+        // De lo contrario, si solo recibe id, actualizamos directamente o llamamos al overload:
+        _repositorioPago.AnularLogico(id, usuarioId);
+
         TempData["Mensaje"] = "El pago ha sido anulado correctamente.";
 
         return RedirectToAction(nameof(Index));

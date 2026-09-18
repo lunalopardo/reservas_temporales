@@ -54,9 +54,31 @@
             }
             else
             {
-                <span class="badge bg-secondary">Inactiva</span>
+                <span class="badge bg-secondary">Inactiva / Finalizada</span>
             }
         </dd>
+
+        @if (User.IsInRole("Administrador") || User.FindFirst("Rol")?.Value == "1")
+        {
+            <dt class="col-sm-12"><hr /></dt>
+            
+            <dt class="col-sm-3 text-muted">Creado por</dt>
+            <dd class="col-sm-9 text-muted">
+                @(Model.CreadoPorUsuario != null 
+                    ? $"{Model.CreadoPorUsuario.Nombre} {Model.CreadoPorUsuario.Apellido} ({Model.CreadoPorUsuario.NombreUsuario})" 
+                    : $"Usuario ID #{Model.CreadoPorUserId}")
+            </dd>
+
+            @if (Model.TerminadoPorUserId.HasValue)
+            {
+                <dt class="col-sm-3 text-muted">Terminado por</dt>
+                <dd class="col-sm-9 text-muted">
+                    @(Model.TerminadoPorUsuario != null 
+                        ? $"{Model.TerminadoPorUsuario.Nombre} {Model.TerminadoPorUsuario.Apellido} ({Model.TerminadoPorUsuario.NombreUsuario})" 
+                        : $"Usuario ID #{Model.TerminadoPorUserId}")
+                </dd>
+            }
+        }
     </dl>
 
     <div class="acciones mt-3">
