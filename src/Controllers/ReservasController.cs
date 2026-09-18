@@ -29,8 +29,8 @@ namespace ReservasTemporales.Controllers
 
         private int ObtenerUsuarioIdActual()
         {
-            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                          ?? User.FindFirst("Id")?.Value 
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst("Id")?.Value
                           ?? User.FindFirst("UserId")?.Value;
 
             return int.TryParse(idClaim, out int id) ? id : 0;
@@ -315,6 +315,29 @@ namespace ReservasTemporales.Controllers
                 text = $"{i.Apellido}, {i.Nombre} (DNI: {i.Dni})"
             });
             return Json(resultado);
+        }
+
+        // GET: Reservas/Renovar/5
+        public IActionResult Renovar(int id)
+        {
+            var reservaBase = _repositorioReserva.GetById(id);
+            if (reservaBase == null)
+            {
+                return NotFound();
+            }
+
+            // Inicializamos la nueva reserva basada en la existente
+            var nuevaReserva = new Reserva
+            {
+                IdInmueble = reservaBase.IdInmueble,
+                IdInquilino = reservaBase.IdInquilino,
+                FechaDesde = reservaBase.FechaHasta,
+                FechaHasta = reservaBase.FechaHasta.AddDays(1)
+            };
+
+            CargarCombos(nuevaReserva.IdInmueble, nuevaReserva.IdInquilino);
+
+            return View("Create", nuevaReserva);
         }
 
         // --- MÉTODOS AUXILIARES Y DE CÁLCULO ---

@@ -60,12 +60,14 @@
 
         @if (User.IsInRole("Administrador") || User.FindFirst("Rol")?.Value == "1")
         {
-            <dt class="col-sm-12"><hr /></dt>
+            <dt class="col-sm-12">
+                <hr />
+            </dt>
             
             <dt class="col-sm-3 text-muted">Creado por</dt>
             <dd class="col-sm-9 text-muted">
-                @(Model.CreadoPorUsuario != null 
-                    ? $"{Model.CreadoPorUsuario.Nombre} {Model.CreadoPorUsuario.Apellido} ({Model.CreadoPorUsuario.NombreUsuario})" 
+                @(Model.CreadoPorUsuario != null
+                    ? $"{Model.CreadoPorUsuario.Nombre} {Model.CreadoPorUsuario.Apellido} ({Model.CreadoPorUsuario.NombreUsuario})"
                     : $"Usuario ID #{Model.CreadoPorUserId}")
             </dd>
 
@@ -73,8 +75,8 @@
             {
                 <dt class="col-sm-3 text-muted">Terminado por</dt>
                 <dd class="col-sm-9 text-muted">
-                    @(Model.TerminadoPorUsuario != null 
-                        ? $"{Model.TerminadoPorUsuario.Nombre} {Model.TerminadoPorUsuario.Apellido} ({Model.TerminadoPorUsuario.NombreUsuario})" 
+                    @(Model.TerminadoPorUsuario != null
+                        ? $"{Model.TerminadoPorUsuario.Nombre} {Model.TerminadoPorUsuario.Apellido} ({Model.TerminadoPorUsuario.NombreUsuario})"
                         : $"Usuario ID #{Model.TerminadoPorUserId}")
                 </dd>
             }
@@ -82,7 +84,13 @@
     </dl>
 
     <div class="acciones mt-3">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="boton-guardar">Editar / Gestionar</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="boton-guardar">Gestionar</a>
+        @if (Model.FechaTerminacionAnticipada == null)
+        {
+            <a asp-action="Renovar" asp-route-id="@Model.Id" class="boton-guardar">
+                Renovar Reserva
+            </a>
+        }
         <a asp-action="Index" class="boton-volver">Volver al listado</a>
     </div>
 </div>

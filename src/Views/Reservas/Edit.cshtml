@@ -55,97 +55,129 @@
         {
             <div class="campo" style="background-color: #fff3cd; padding: 10px; border-radius: 6px; margin-top: 10px;">
                 <label style="color: #856404; font-weight: bold;">Reserva Terminada Anticipadamente</label>
-                <p class="mb-1"><strong>Fecha de salida:</strong>
-                    @Model.FechaTerminacionAnticipada.Value.ToString("yyyy-MM-dd")</p>
-                    <p class="mb-0"><strong>Multa Aplicada:</strong> $@Model.Multa?.ToString("N2")</p>
-                </div>
-            }
-
-            <div class="acciones" style="margin-top: 20px; display: flex; gap: 10px;">
-                @if (!Model.FechaTerminacionAnticipada.HasValue)
-                {
-                    <button type="button" class="btn btn-warning" data-bs-toggle="modal"
-                            data-bs-target="#modalTerminarAnticipadamente">
-                        Terminar antes
-                    </button>
-                }
-                <a asp-action="Index" class="boton-volver">Volver</a>
+                <p class="mb-1"><strong>Fecha de salida:</strong> @Model.FechaTerminacionAnticipada.Value.ToString("yyyy-MM-dd")</p>
+                <p class="mb-0"><strong>Multa Aplicada:</strong> $@Model.Multa?.ToString("N2")</p>
             </div>
-        </form>
-    </div>
+        }
 
-    <!-- Modal para terminación anticipada -->
-    <div class="modal fade" id="modalTerminarAnticipadamente" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form asp-action="TerminarAnticipadamente" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="idReserva" value="@Model.Id" />
+        <div class="acciones" style="margin-top: 20px; display: flex; gap: 10px;">
+            @if (!Model.FechaTerminacionAnticipada.HasValue)
+            {
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalTerminarAnticipadamente">
+                    Terminar antes
+                </button>
+            }
+            <a asp-action="Index" class="boton-volver">Volver</a>
+        </div>
+    </form>
+</div>
 
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalLabel">Terminar Reserva Antes</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Modal para terminación anticipada -->
+<div class="modal fade" id="modalTerminarAnticipadamente" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="TerminarAnticipadamente" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="idReserva" value="@Model.Id" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Terminar Reserva Antes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="fechaTerminacion" class="form-label">Fecha efectiva de terminación</label>
+                        <input type="text" id="fechaTerminacion" name="fechaTerminacion" class="form-control"
+                               placeholder="Seleccione la fecha" required autocomplete="off" />
                     </div>
 
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="fechaTerminacion" class="form-label">Fecha efectiva de terminación</label>
-                            <input type="text" id="fechaTerminacion" name="fechaTerminacion" class="form-control"
-                                   placeholder="Seleccione la fecha" required autocomplete="off" />
-                        </div>
-
-                        <div id="contenedorResultadoMulta"
-                             style="display:none; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
-                            <p class="mb-1"><strong>Días cumplidos:</strong> <span id="lblDias">0</span> / <span
-                                id="lblTotalDias">0</span></p>
-                                <p class="mb-1"><strong>Porcentaje de multa aplicado:</strong> <span
-                                    id="lblPorcentaje">0</span>%</p>
-                                    <h4 class="mt-2 text-danger">Monto Multa: $<span id="lblMontoMulta">0.00</span></h4>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" id="btnConfirmarTerminacion" class="btn btn-danger" disabled>Confirmar y
-                                    registrar multa</button>
-                                </div>
-                            </form>
-                        </div>
+                    <div id="contenedorResultadoMulta"
+                         style="display:none; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6;">
+                        
+                        <p class="mb-1"><strong>Días cumplidos:</strong> <span id="lblDias">0</span> de <span id="lblTotalDias">0</span> días en total.</p>
+                        <p class="mb-1"><strong>Días no utilizados (restantes):</strong> <span id="lblDiasRestantes">0</span> día(s)</p>
+                        <p class="mb-1"><strong>Valor total de días restantes:</strong> $<span id="lblMontoRestante">0.00</span></p>
+                        <p class="mb-1"><strong>Porcentaje de penalización:</strong> <span id="lblPorcentaje">0</span>%</p>
+                        
+                        <hr class="my-2" />
+                        
+                        <h4 class="mt-2 text-danger" style="margin-bottom: 5px;">Monto Final de Multa: $<span id="lblMontoMulta">0.00</span></h4>
+                        
+                        <!-- explicando la cuenta -->
+                        <small class="text-muted d-block" style="font-size: 0.85em; line-height: 1.3;">
+                            * El valor de la multa se calcula aplicando un <strong><span id="lblPorcentajeNota">0</span>%</strong> sobre el costo de los 
+                            <strong><span id="lblDiasRestantesNota">0</span> día(s) no alojados</strong> 
+                            ($<span id="lblMontoRestanteNota">0.00</span>), dando un total a abonar de 
+                            <strong>$<span id="lblMontoMultaNota">0.00</span></strong>.
+                        </small>
                     </div>
                 </div>
 
-                @section Scripts {
-                    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-                    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnConfirmarTerminacion" class="btn btn-danger" disabled>
+                        Confirmar y registrar multa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function () {
-                            const idReserva = "@Model.Id";
-                            const fechaInicio = "@Model.FechaDesde.ToString("yyyy-MM-dd")";
-                            const fechaFinOriginal = "@Model.FechaHasta.ToString("yyyy-MM-dd")";
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
-                            const fpTerminacion = flatpickr("#fechaTerminacion", {
-                                locale: "es",
-                                dateFormat: "Y-m-d",
-                                minDate: fechaInicio,
-                                maxDate: fechaFinOriginal,
-                                onChange: function (selectedDates, dateStr) {
-                                    if (!dateStr) return;
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const idReserva = "@Model.Id";
+            const fechaInicio = "@Model.FechaDesde.ToString("yyyy-MM-dd")";
+            const fechaFinOriginal = "@Model.FechaHasta.ToString("yyyy-MM-dd")";
 
-                                    fetch(`/Reservas/CalcularMultaAnticipada?idReserva=${idReserva}&fTerminacion=${dateStr}`)
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            document.getElementById("lblDias").innerText = data.diasTranscurridos;
-                                            document.getElementById("lblTotalDias").innerText = data.totalDias;
-                                            document.getElementById("lblPorcentaje").innerText = data.porcentaje;
-                                            document.getElementById("lblMontoMulta").innerText = Number(data.montoMulta).toLocaleString('es-AR', { minimumFractionDigits: 2 });
+            flatpickr("#fechaTerminacion", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                minDate: fechaInicio,
+                maxDate: fechaFinOriginal,
+                onChange: function (selectedDates, dateStr) {
+                    if (!dateStr) return;
 
-                                            document.getElementById("contenedorResultadoMulta").style.display = "block";
-                                            document.getElementById("btnConfirmarTerminacion").disabled = false;
-                                        })
-                                        .catch(err => console.error("Error al calcular multa:", err));
-                                }
-                            });
-                        });
-                    </script>
+                    fetch(`/Reservas/CalcularMultaAnticipada?idReserva=${idReserva}&fTerminacion=${dateStr}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            const totalDias = data.totalDias;
+                            const diasTranscurridos = data.diasTranscurridos;
+                            const diasRestantes = totalDias - diasTranscurridos;
+                            
+                            // Monto de los días que no se van a ocupar
+                            const montoMulta = Number(data.montoMulta);
+                            const porcentaje = data.porcentaje;
+                
+                            const montoRestante = porcentaje > 0 ? (montoMulta / (porcentaje / 100)) : 0;
+
+                            const formatoMoneda = val => Number(val).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                            // Asignación de valores principales
+                            document.getElementById("lblDias").innerText = diasTranscurridos;
+                            document.getElementById("lblTotalDias").innerText = totalDias;
+                            document.getElementById("lblDiasRestantes").innerText = diasRestantes;
+                            document.getElementById("lblMontoRestante").innerText = formatoMoneda(montoRestante);
+                            document.getElementById("lblPorcentaje").innerText = porcentaje;
+                            document.getElementById("lblMontoMulta").innerText = formatoMoneda(montoMulta);
+
+                            // Asignación de valores en la letra chica
+                            document.getElementById("lblPorcentajeNota").innerText = porcentaje;
+                            document.getElementById("lblDiasRestantesNota").innerText = diasRestantes;
+                            document.getElementById("lblMontoRestanteNota").innerText = formatoMoneda(montoRestante);
+                            document.getElementById("lblMontoMultaNota").innerText = formatoMoneda(montoMulta);
+
+                            document.getElementById("contenedorResultadoMulta").style.display = "block";
+                            document.getElementById("btnConfirmarTerminacion").disabled = false;
+                        })
+                        .catch(err => console.error("Error al calcular multa:", err));
                 }
+            });
+        });
+    </script>
+}

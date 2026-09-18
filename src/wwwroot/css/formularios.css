@@ -273,3 +273,11 @@
 .validation-summary-valid {
     display: none;
 }
+
+#fechaDesde,
+#fechaHasta,
+.flatpickr-input[readonly] {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    background-color: #ffffff !important;
+}

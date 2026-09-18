@@ -260,6 +260,18 @@
                         }
                     });
             }
+
+            // Carga inicial del Inquilino si viene un Model.IdInquilino
+            let idInquilinoInicial = '@Model?.IdInquilino' || $('#IdInquilino').val();
+
+            if (idInquilinoInicial && idInquilinoInicial !== "0") {
+                fetch(`/Reservas/BuscarInquilinos?q=`)
+                    .then(r => r.json())
+                    .then(data => {
+                        $('#IdInquilino').val(idInquilinoInicial).trigger('change');
+                    })
+                    .catch(e => console.error("Error al precargar inquilino:", e));
+            }
         });
     </script>
 }
