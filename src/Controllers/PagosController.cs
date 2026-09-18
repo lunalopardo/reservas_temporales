@@ -20,23 +20,23 @@ public class PagosController : Controller
 
     private int ObtenerUsuarioIdActual()
     {
-        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                      ?? User.FindFirst("Id")?.Value 
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                      ?? User.FindFirst("Id")?.Value
                       ?? User.FindFirst("UserId")?.Value;
 
         return int.TryParse(idClaim, out int id) ? id : 0;
     }
 
     // GET: Pagos
-    public IActionResult Index(string? buscar, int paginaNro = 1)
+    public IActionResult Index(string? buscar, int pagina = 1)
     {
         int tamPagina = 10;
-        var pagos = _repositorioPago.GetPaginado(buscar, paginaNro, tamPagina);
+        var pagos = _repositorioPago.GetPaginado(buscar, pagina, tamPagina);
         int totalRegistros = _repositorioPago.ObtenerCantidad(buscar);
 
-        ViewBag.Buscar = buscar;
-        ViewBag.PaginaActual = paginaNro;
-        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+        ViewData["FiltroActual"] = buscar;
+        ViewData["PaginaActual"] = pagina;
+        ViewData["TotalPaginas"] = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
         return View(pagos);
     }
