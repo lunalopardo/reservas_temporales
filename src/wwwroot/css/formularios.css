@@ -303,3 +303,44 @@
     border-color: #dae0e5;
     color: #212529 !important;
 }
+
+/* botones de sugerencia */
+.contenedor-sugerencias {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+    width: 100%;
+}
+
+.boton-sugerencia {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #2b2b2b;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.boton-sugerencia:hover:not(:disabled) {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.boton-sugerencia.activo {
+    border-color: #0d685b;
+    background-color: #0d685b;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.boton-sugerencia:disabled {
+    color: #9ca3af;
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+}

@@ -12,10 +12,13 @@ public class PagosController : Controller
     private readonly RepositorioPago _repositorioPago;
     private readonly RepositorioReserva _repositorioReserva;
 
-    public PagosController(RepositorioPago repositorioPago, RepositorioReserva repositorioReserva)
+    private readonly RepositorioInmueble _repositorioInmueble;
+
+    public PagosController(RepositorioPago repositorioPago, RepositorioReserva repositorioReserva, RepositorioInmueble repositorioInmueble)
     {
         _repositorioPago = repositorioPago;
         _repositorioReserva = repositorioReserva;
+        _repositorioInmueble = repositorioInmueble;
     }
 
     private int ObtenerUsuarioIdActual()
@@ -246,5 +249,27 @@ public class PagosController : Controller
 
         TempData["Error"] = "Por favor, complete correctamente los campos del pago.";
         return View(pagos);
+    }
+
+    // Obtenemos montos sugeridos para autocompletar los input de nuevos pagos; para mantener una coherencia
+    [HttpGet]
+    public IActionResult ObtenerMontosSugeridos(int idReserva)
+    {
+        var reserva = _repositorioReserva.GetById(idReserva);
+        if (reserva == null) return NotFound();
+
+        var inmueble = _repositorioInmueble.GetById(reserva.IdInmueble);
+
+        int dias = (reserva.FechaHasta - reserva.FechaDesde).Days;
+        decimal totalEstadia = reserva.MontoDiario * dias;
+        decimal porcentajeSena = inmueble?.PorcentajeSena ?? 0;
+        decimal montoSena = totalEstadia * (porcentajeSena / 100m);
+
+        return Json(new
+        {
+            montoDiario = reserva.MontoDiario,
+            montoSena = Math.Round(montoSena, 2),
+            montoTotal = totalEstadia
+        });
     }
 }

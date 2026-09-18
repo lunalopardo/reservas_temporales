@@ -4,8 +4,8 @@
     ViewData["Title"] = "Registrar Pago";
 }
 
-<link rel="stylesheet" href="~/css/formularios.css" />
 <link rel="stylesheet" href="~/css/site.css" />
+<link rel="stylesheet" href="~/css/formularios.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 
 <div class="formulario-contenedor">
@@ -31,6 +31,19 @@
             <span asp-validation-for="FechaPago" class="mensaje-error"></span>
         </div>
 
+        <!-- Sugerencias de importe para que no pongan cualquier cosa -->
+        <div class="campo">
+            <label>Sugerencias de importe</label>
+            <div class="contenedor-sugerencias" id="grupoSugerencias">
+                <button type="button" class="boton-sugerencia" data-tipo="diario" disabled>
+                    Monto Diario (<span id="txtMontoDiario">$0</span>)
+                </button>
+                <button type="button" class="boton-sugerencia" data-tipo="sena" disabled>
+                    Seña (<span id="txtMontoSena">$0</span>)
+                </button>
+            </div>
+        </div>
+
         <div class="campo">
             <label asp-for="Importe">Importe ($)</label>
             <input asp-for="Importe" type="number" step="0.01" min="0.01" class="form-control" id="ImporteInput" />
@@ -38,7 +51,7 @@
         </div>
 
         <div class="campo">
-            <label asp-for="Concepto">Concepto / Obseravciones</label>
+            <label asp-for="Concepto">Concepto / Observaciones</label>
             <textarea asp-for="Concepto" class="form-control" rows="3"></textarea>
             <span asp-validation-for="Concepto" class="mensaje-error"></span>
         </div>
@@ -84,6 +97,48 @@
                     }
                 }
             });
+        });
+
+        // LÓGICA DE MONTO SUGERIDO
+        let valoresSugeridos = { diario: 0, sena: 0 };
+
+        function cargarMontosReserva(idReserva) {
+            if (!idReserva) return;
+
+            $.get(`/Pagos/ObtenerMontosSugeridos?idReserva=${idReserva}`, function (data) {
+                valoresSugeridos.diario = data.montoDiario;
+                valoresSugeridos.sena = data.montoSena;
+
+                $('#txtMontoDiario').text(`$${data.montoDiario}`);
+                $('#txtMontoSena').text(`$${data.montoSena}`);
+
+                $('.boton-sugerencia[data-tipo="diario"]').prop('disabled', false);
+                $('.boton-sugerencia[data-tipo="sena"]').prop('disabled', false);
+            });
+        }
+
+        $('#IdReserva').on('select2:select', function (e) {
+            cargarMontosReserva(e.params.data.id);
+        });
+
+        $(document).on('click', '.boton-sugerencia', function () {
+            $('.boton-sugerencia').removeClass('activo'); $(this).addClass('activo');
+
+            const tipo = $(this).data('tipo');
+            const $inputImporte = $('#ImporteInput');
+            const $inputConcepto = $('#Concepto');
+    
+            // Obtenemos el ID de la reserva seleccionada en el combo
+            const idReserva = $('#IdReserva').val();
+            const etiquetaReserva = idReserva ? `#${idReserva}` : '';
+
+            if (tipo === 'diario') {
+                $inputImporte.val(valoresSugeridos.diario); $inputConcepto.val(`Pago de Reserva ${etiquetaReserva} - Monto diario`);
+            } else if (tipo === 'sena') {
+                $inputImporte.val(valoresSugeridos.sena); $inputConcepto.val(`Pago de Reserva ${etiquetaReserva} - Seña`);
+            } else {
+                $inputImporte.val('').focus(); $inputConcepto.val(idReserva ? `Pago de Reserva ${etiquetaReserva}` : '');
+            }
         });
     </script>
 }
