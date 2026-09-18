@@ -57,9 +57,9 @@ El sistema es una solución integral para la gestión de alquileres temporales..
 
 A continuación se presenta el esquema del modelo de datos correspondiente a la aplicación:
 
-### Diagrama Entidad-Relación (DER) / Diagrama de Clases
+### Diagrama Entidad-Relación (DER)
 
-![Diagrama del Proyecto](/docs/DER.png)
+![Diagrama del Proyecto](/docs/DER2.png)
 
 ---
 
