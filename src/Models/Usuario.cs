@@ -33,7 +33,7 @@ public class Usuario
     [Column("email")]
     public string Email { get; set; } = string.Empty;
 
-    [Required, DataType(DataType.Password)]
+    [DataType(DataType.Password)]
     [Column("password")]
     public string Password { get; set; } = string.Empty;
 

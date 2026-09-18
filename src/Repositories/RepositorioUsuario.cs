@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using MySqlConnector;
 using ReservasTemporales.Models;
 
@@ -7,26 +8,32 @@ public class RepositorioUsuario : RepositorioBase
 {
     public RepositorioUsuario(IConfiguration configuration) : base(configuration) { }
 
-    // Iniciar sesión
-    public Usuario? ValidarLogin(string login, string password)
+    public Usuario? ValidarLogin(string login, string password, IPasswordHasher<Usuario> passwordHasher)
     {
         string sql = @"
                 SELECT * FROM usuario 
                 WHERE (nombre_usuario = @login OR email = @login) 
-                AND password = @password 
                 AND activo = 1";
 
         using MySqlConnection connection = new(connectionString);
         using MySqlCommand command = new(sql, connection);
         command.Parameters.AddWithValue("@login", login);
-        command.Parameters.AddWithValue("@password", password);
 
         connection.Open();
         using (MySqlDataReader reader = command.ExecuteReader())
         {
             if (reader.Read())
             {
-                return ParseUsuario(reader);
+                var usuario = ParseUsuario(reader);
+
+                // Verificamos si la contraseña tipeada coincide con el hash guardado
+                var resultado = passwordHasher.VerifyHashedPassword(usuario, usuario.Password, password);
+
+                if (resultado == PasswordVerificationResult.Success ||
+                    resultado == PasswordVerificationResult.SuccessRehashNeeded)
+                {
+                    return usuario;
+                }
             }
         }
         return null;
@@ -97,7 +104,6 @@ public class RepositorioUsuario : RepositorioBase
         return total;
     }
 
-    // Obtener pro id
     public Usuario? GetById(int id)
     {
         string sql = "SELECT * FROM usuario WHERE id = @id";
@@ -117,9 +123,14 @@ public class RepositorioUsuario : RepositorioBase
         return null;
     }
 
-    // Crear usuario nuevo (por ahora no está implementado, solo se van a usar usuarios existentes)
-    public int Create(Usuario usuario)
+    // Crear usuario
+    public int Create(Usuario usuario, IPasswordHasher<Usuario>? passwordHasher = null)
     {
+        if (passwordHasher != null && !string.IsNullOrEmpty(usuario.Password))
+        {
+            usuario.Password = passwordHasher.HashPassword(usuario, usuario.Password);
+        }
+
         string sql = @"INSERT INTO usuario 
                       (nombre_usuario, nombre, apellido, email, password, avatar, rol, activo) 
                       VALUES 

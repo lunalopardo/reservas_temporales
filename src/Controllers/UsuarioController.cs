@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity; // <-- Agregar
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ReservasTemporales.Models;
@@ -13,11 +14,16 @@ public class UsuariosController : Controller
 {
     private readonly RepositorioUsuario _repositorioUsuario;
     private readonly IWebHostEnvironment _environment;
+    private readonly IPasswordHasher<Usuario> _passwordHasher; // <-- Agregar
 
-    public UsuariosController(RepositorioUsuario repositorioUsuario, IWebHostEnvironment environment)
+    public UsuariosController(
+        RepositorioUsuario repositorioUsuario,
+        IWebHostEnvironment environment,
+        IPasswordHasher<Usuario> passwordHasher) // <-- Inyectar
     {
         _repositorioUsuario = repositorioUsuario;
         _environment = environment;
+        _passwordHasher = passwordHasher;
     }
 
     // GET: Login
@@ -43,18 +49,18 @@ public class UsuariosController : Controller
             return View(model);
         }
 
-        var usuario = _repositorioUsuario.ValidarLogin(model.Email, model.Password);
+        var usuario = _repositorioUsuario.ValidarLogin(model.Email, model.Password, _passwordHasher);
 
         if (usuario != null)
         {
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new Claim(ClaimTypes.Name, usuario.Email),
-            new Claim("FullName", $"{usuario.Nombre} {usuario.Apellido}"),
-            new Claim(ClaimTypes.Role, usuario.RolNombre ?? "Usuario"),
-            new Claim("Avatar", usuario.Avatar ?? "")
-        };
+            {
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Name, usuario.Email),
+                new Claim("FullName", $"{usuario.Nombre} {usuario.Apellido}"),
+                new Claim(ClaimTypes.Role, usuario.RolNombre ?? "Usuario"),
+                new Claim("Avatar", usuario.Avatar ?? "")
+            };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -102,6 +108,8 @@ public class UsuariosController : Controller
             return NotFound();
         }
 
+        usuario.Password = string.Empty;
+
         return View(usuario);
     }
 
@@ -141,10 +149,14 @@ public class UsuariosController : Controller
             modelo.Avatar = usuarioExistente.Avatar;
         }
 
-        // Preservar contraseña si no se modificó
+        // Manejo de la Contraseña
         if (string.IsNullOrWhiteSpace(modelo.Password))
         {
             modelo.Password = usuarioExistente.Password;
+        }
+        else
+        {
+            modelo.Password = _passwordHasher.HashPassword(modelo, modelo.Password);
         }
 
         modelo.Id = id;
@@ -161,10 +173,8 @@ public class UsuariosController : Controller
             _repositorioUsuario.UpdatePerfil(modelo);
         }
 
-        // Recuperar entidad actualizada limpia de la DB
         var usuarioActualizado = _repositorioUsuario.GetById(id);
 
-        // Actualizar cookies si el usuario está editando su propio perfil
         if (id == currentUserId && usuarioActualizado != null)
         {
             var claims = new List<Claim>
@@ -181,6 +191,8 @@ public class UsuariosController : Controller
         }
 
         ViewBag.Mensaje = "Perfil actualizado correctamente.";
+        if (usuarioActualizado != null) usuarioActualizado.Password = string.Empty;
+
         return View(usuarioActualizado ?? modelo);
     }
 
@@ -205,9 +217,9 @@ public class UsuariosController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
-    Usuario usuario,
-    IFormFile? avatarFile,
-    [FromServices] IWebHostEnvironment environment)
+        Usuario usuario,
+        IFormFile? avatarFile,
+        [FromServices] IWebHostEnvironment environment)
     {
         if (ModelState.IsValid)
         {
@@ -224,6 +236,16 @@ public class UsuariosController : Controller
                 usuario.Avatar = usuarioExistente.Avatar;
             }
             usuario.Rol = usuarioExistente.Rol;
+
+            // Si cambió la contraseña, la hasheamos
+            if (!string.IsNullOrWhiteSpace(usuario.Password))
+            {
+                usuario.Password = _passwordHasher.HashPassword(usuario, usuario.Password);
+            }
+            else
+            {
+                usuario.Password = usuarioExistente.Password;
+            }
 
             _repositorioUsuario.UpdateCompleto(usuario);
             return RedirectToAction(nameof(Index));
@@ -257,4 +279,67 @@ public class UsuariosController : Controller
         return RedirectToAction("Index");
     }
 
+    // GET: /Usuarios/Register (o /Register)
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Register()
+    {
+        if (User.Identity is { IsAuthenticated: true })
+        {
+            return RedirectToAction("Index", "Home");
+        }
+        return View();
+    }
+
+    // POST: /Usuarios/Register
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(Usuario usuario)
+    {
+        ModelState.Remove(nameof(Usuario.Avatar));
+
+        if (!ModelState.IsValid)
+        {
+            return View(usuario);
+        }
+
+        // Procesar el avatar en caso de que hayan subido una foto durante el registro
+        if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
+        {
+            string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "avatars");
+            Directory.CreateDirectory(uploadsFolder);
+
+            string uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(usuario.AvatarFile.FileName)}";
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await usuario.AvatarFile.CopyToAsync(fileStream);
+            }
+
+            usuario.Avatar = $"/uploads/avatars/{uniqueFileName}";
+        }
+
+        // Hashear la contraseña con el IPasswordHasher inyectado
+        usuario.Password = _passwordHasher.HashPassword(usuario, usuario.Password);
+
+        // Asignar rol por defecto (empleado)
+        if (usuario.Rol == 0)
+        {
+            usuario.Rol = (int)enRoles.Empleado;
+        }
+        usuario.Activo = true;
+
+        int resultado = _repositorioUsuario.Create(usuario);
+
+        if (resultado > 0)
+        {
+            TempData["Mensaje"] = "¡Cuenta creada correctamente! Ya podés iniciar sesión.";
+            return RedirectToAction("Login");
+        }
+
+        ModelState.AddModelError(string.Empty, "Ocurrió un error al registrar el usuario.");
+        return View(usuario);
+    }
 }

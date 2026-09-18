@@ -1,5 +1,13 @@
 @model ReservasTemporales.Models.LoginViewModel
 
+@if (TempData["Mensaje"] != null)
+{
+    <div id="alerta-mensaje"
+         style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; text-align: center; margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: opacity 0.5s ease;">
+        @TempData["Mensaje"]
+    </div>
+}
+
 <form asp-controller="Usuarios" asp-action="Login" method="post" class="formulario-login">
     @Html.AntiForgeryToken()
     <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
@@ -22,3 +30,7 @@
         <button type="submit" class="login-btn">Iniciar Sesión</button>
     </div>
 </form>
+
+<div style="text-align: center; margin-top: 1rem;">
+    <p class="mb-0">¿No tenés una cuenta? <a asp-controller="Usuarios" asp-action="Register" class="text-decoration-none">Registrate</a></p>
+</div>
