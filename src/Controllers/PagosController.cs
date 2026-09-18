@@ -256,20 +256,25 @@ public class PagosController : Controller
     public IActionResult ObtenerMontosSugeridos(int idReserva)
     {
         var reserva = _repositorioReserva.GetById(idReserva);
-        if (reserva == null) return NotFound();
+        if (reserva == null) return Json(new { montoDiario = 0, montoSena = 0 });
 
         var inmueble = _repositorioInmueble.GetById(reserva.IdInmueble);
+        if (inmueble == null) return Json(new { montoDiario = 0, montoSena = 0 });
 
         int dias = (reserva.FechaHasta - reserva.FechaDesde).Days;
-        decimal totalEstadia = reserva.MontoDiario * dias;
-        decimal porcentajeSena = inmueble?.PorcentajeSena ?? 0;
-        decimal montoSena = totalEstadia * (porcentajeSena / 100m);
+        if (dias <= 0) dias = 1;
+
+        decimal totalEstadia = dias * inmueble.Precio;
+
+        //  Seña calculada sobre el TOTAL de la reserva
+        decimal montoSenaTotal = totalEstadia * (inmueble.PorcentajeSena / 100m);
+
+        decimal montoDiarioSugerido = reserva.MontoDiario;
 
         return Json(new
         {
-            montoDiario = reserva.MontoDiario,
-            montoSena = Math.Round(montoSena, 2),
-            montoTotal = totalEstadia
+            montoDiario = montoDiarioSugerido,
+            montoSena = montoSenaTotal
         });
     }
 }

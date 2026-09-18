@@ -84,6 +84,9 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
+            let precioBaseActual = 0;
+            let porcentajeSenaActual = 0;
+
             // SELECT2 PARA INMUEBLES
             $('#IdInmueble').select2({
                 language: "es",
@@ -134,12 +137,15 @@
 
             // FLATPICKR Y CARGA DINÁMICA DE PRECIOS/FECHAS
             let fechasOcupadasSet = new Set();
-            
+
             const pickerDesde = flatpickr("#fechaDesde", {
                 locale: "es",
                 dateFormat: "Y-m-d",
                 minDate: "today",
                 disable: [],
+                onChange: function () {
+                    calcularYMostrarPrecios();
+                },
                 onDayCreate: function (dObj, dStr, fp, dayElem) {
                     let anio = dayElem.dateObj.getFullYear();
                     let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
@@ -157,6 +163,9 @@
                 dateFormat: "Y-m-d",
                 minDate: "today",
                 disable: [],
+                onChange: function () {
+                    calcularYMostrarPrecios();
+                },
                 onDayCreate: function (dObj, dStr, fp, dayElem) {
                     let anio = dayElem.dateObj.getFullYear();
                     let mes = String(dayElem.dateObj.getMonth() + 1).padStart(2, '0');
@@ -173,8 +182,46 @@
             const infoContainer = document.getElementById("infoPrecioContainer");
             const textoDetalle = document.getElementById("textoDetallePrecio");
 
+            // FUNCIÓN PARA CALCULAR Y MOSTRAR LOS PRECIOS
+            function calcularYMostrarPrecios() {
+                if (precioBaseActual <= 0) {
+                    infoContainer.style.display = "none";
+                    return;
+                }
+
+                let fDesdeStr = $('#fechaDesde').val();
+                let fHastaStr = $('#fechaHasta').val();
+
+                let senaDiaria = precioBaseActual * porcentajeSenaActual;
+                let saldoAPagarDiario = precioBaseActual - senaDiaria;
+                inputMonto.value = saldoAPagarDiario;
+
+                if (fDesdeStr && fHastaStr) {
+                    let fDesde = new Date(fDesdeStr + 'T00:00:00');
+                    let fHasta = new Date(fHastaStr + 'T00:00:00');
+                    let dias = Math.round((fHasta - fDesde) / (1000 * 3600 * 24));
+
+                    if (dias > 0) {
+                        let totalEstadia = precioBaseActual * dias;
+                        let senaTotal = totalEstadia * porcentajeSenaActual;
+
+                        textoDetalle.innerHTML =
+                            `Total por <strong>${dias} día(s)</strong> de estadía: <strong>$${totalEstadia.toLocaleString()}</strong>.<br>` +
+                            `Se dejó de seña (<strong>${porcentajeSenaActual * 100}%</strong>): <strong>$${senaTotal.toLocaleString()}</strong>.<br>` +
+                            `El precio a pagar por día restante es de <strong>$${saldoAPagarDiario.toLocaleString()}</strong>.`;
+                        infoContainer.style.display = "block";
+                        return;
+                    }
+                }
+
+                textoDetalle.innerHTML = `El precio por día del inmueble es <strong>$${precioBaseActual.toLocaleString()}</strong> y la seña por día es de <strong>$${senaDiaria.toLocaleString()}</strong>. El precio a pagar por día restante es de <strong>$${saldoAPagarDiario.toLocaleString()}</strong>.`;
+                infoContainer.style.display = "block";
+            }
+
             function cargarDatosInmueble(idInmueble) {
                 if (!idInmueble) {
+                    precioBaseActual = 0;
+                    porcentajeSenaActual = 0;
                     inputMonto.value = "";
                     infoContainer.style.display = "none";
                     fechasOcupadasSet.clear();
@@ -190,16 +237,9 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.precio) {
-                            let precioBase = parseFloat(data.precio);
-                            
-                            let porcentajeSena = data.porcentajeSena ? parseFloat(data.porcentajeSena) / 100 : 0;
-                            let sena = precioBase * porcentajeSena;
-                            let saldoAPagar = precioBase - sena;
-
-                            inputMonto.value = saldoAPagar;
-
-                            textoDetalle.innerHTML = `El precio por día del inmueble es <strong>$${precioBase.toLocaleString()}</strong> y se dejó de seña <strong>$${sena.toLocaleString()}</strong>. El precio a pagar por día es de <strong>$${saldoAPagar.toLocaleString()}</strong>.`;
-                            infoContainer.style.display = "block";
+                            precioBaseActual = parseFloat(data.precio);
+                            porcentajeSenaActual = data.porcentajeSena ? parseFloat(data.porcentajeSena) / 100 : 0;
+                            calcularYMostrarPrecios();
                         }
                     })
                     .catch(error => console.error("Error al obtener precio:", error));
