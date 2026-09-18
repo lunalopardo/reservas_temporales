@@ -71,11 +71,12 @@
             {
                 <div class="contenedor-preview">
                     <img src="@Model.Foto_portada" class="imagen-preview" alt="Portada Actual" />
-                    <button type="submit" asp-controller="Imagenes" asp-action="Eliminar" asp-route-idInmueble="@Model.Id"
-                            asp-route-tipoFoto="portada" class="btn-eliminar-foto" title="Eliminar portada">&times;</button>
+                    <button type="submit" asp-controller="Imagenes" asp-action="EliminarInmuebleFoto"
+                            asp-route-idInmueble="@Model.Id" asp-route-tipoFoto="portada" class="btn-eliminar-foto"
+                            title="Eliminar portada">&times;</button>
                 </div>
             }
-            <input type="file" name="archivoPortada" accept="image/*" class="form-control" />
+            <input type="file" name="archivoPortada" accept=".jpg, .jpeg, .png, .webp" class="form-control" />
         </div>
 
         <!-- Galería actual y opción de subida -->
@@ -88,14 +89,14 @@
                     {
                         <div class="contenedor-preview">
                             <img src="@galeriaFotos[i]" class="imagen-preview" alt="Foto @i" />
-                            <button type="submit" asp-controller="Imagenes" asp-action="Eliminar"
+                            <button type="submit" asp-controller="Imagenes" asp-action="EliminarInmuebleFoto"
                                     asp-route-idInmueble="@Model.Id" asp-route-tipoFoto="galeria" asp-route-posicion="@i"
                                     class="btn-eliminar-foto" title="Eliminar esta foto">&times;</button>
                         </div>
                     }
                 </div>
             }
-            <input type="file" name="archivosGaleria" accept="image/*" multiple class="form-control" />
+            <input type="file" name="archivosGaleria" accept=".jpg, .jpeg, .png, .webp" multiple class="form-control" />
         </div>
 
         <div class="acciones mt-4">

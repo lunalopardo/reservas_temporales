@@ -281,3 +281,25 @@
     pointer-events: auto !important;
     background-color: #ffffff !important;
 }
+
+/* Botón Secundario / Limpiar Filtros*/
+.boton-limpiar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #495057 !important;
+    padding: 0.45rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid #ced4da;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.boton-limpiar:hover {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+    color: #212529 !important;
+}

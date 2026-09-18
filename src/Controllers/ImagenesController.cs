@@ -28,7 +28,9 @@ namespace ReservasTemporales.Controllers
                 Directory.CreateDirectory(uploadsFolder);
             }
 
-            string nombreArchivo = $"{Guid.NewGuid()}{Path.GetExtension(archivo.FileName)}";
+            string extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
+
+            string nombreArchivo = $"{Guid.NewGuid()}{extension}";
             string rutaCompleta = Path.Combine(uploadsFolder, nombreArchivo);
 
             using (var stream = new FileStream(rutaCompleta, FileMode.Create))
@@ -54,9 +56,9 @@ namespace ReservasTemporales.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EliminarInmuebleFoto(
-            int idInmueble, 
-            string tipoFoto, 
-            int posicion = 0, 
+            int idInmueble,
+            string tipoFoto,
+            int posicion = 0,
             [FromServices] IWebHostEnvironment environment = null!)
         {
             var inmueble = _repositorioInmueble.GetById(idInmueble);
@@ -88,7 +90,7 @@ namespace ReservasTemporales.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EliminarAvatarUsuario(
-            int idUsuario, 
+            int idUsuario,
             [FromServices] IWebHostEnvironment environment = null!)
         {
             var usuario = _repositorioUsuario.GetById(idUsuario);
