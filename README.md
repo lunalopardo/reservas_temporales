@@ -2,31 +2,58 @@
 
 > Sistema para la gestión integral de alquileres temporarios de propiedades inmuebles desarrollado para una agencia inmobiliaria.
 
+
 ---
 
 ## 👥 Integrantes del Grupo
 
 * **Luna Lopardo** - *luna.lopardo@gmail.com* - [@lunalopardo](https://github.com/lunalopardo) - Discord: `slotherin`
-* **Myriam Alvarez** - *myriamalvarez1006@gmail.com* - [@myriamalvarez](https://github.com/myriamalvarez) - Discord: `myriamalvarez1006`
-* **Leandra Campos** - *camposleandra149@gmail.com* - [@Leandra25](https://github.com/Leandra25) - Discord: `Leandra 7827`
+
 
 ---
 
-## 📦 Alcance del Proyecto y Funcionalidades al día de hoy
+## 📦 Alcance del proyecto y funcionalidades al día de hoy
 
 El sistema es una solución integral para la gestión de alquileres temporales..
 
-### 📌 Módulos e Implementaciones:
-* **Diseño e Integración de Base de Datos**: Estructura relacional desarrollada con Entity Framework Core / MySQL para Propietarios, Inquilinos, Inmuebles y Reservas.
-* **Módulos CRUD / ABM Completo**:
-  * **Propietarios e Inquilinos**: Registro, actualización y gestión de estados/bajas lógicas.
-  * **Inmuebles**: Alta con fotos/detalles, precio por día y estado de disponibilidad.
-  * **Reservas**: Control de rangos de fechas, ingreso automático del precio diario del inmueble y validación de superposición de fechas.
-* **Interfaz de Usuario (ASP.NET Core MVC)**: Vistas dinámicas, modales de confirmación, responsive design y hojas de estilo personalizadas para cada flujo del sistema.
+### Módulos e Implementaciones:
+
+**Autenticación y autorización**
+- El sistema cuenta con autenticación y todas las funcionalidades requieren tener una sesión activa.
+- El administrador (user: admin - pw: admin) puede editar los perfiles de los empleados y ver una lista completa de todos los usuarios.
+- Los empleados solo pueden ver y editar su propio perfil pero tienen acceso a todas las funcionalidades del sistema.
+- Los administradores pueden ver datos extra dentro de los detalles de Pago y Reserva: Quién los creó y, en caso de que aplique, quién los anuló.
+
+**Entidades**
+- El sistema permite gestionar (CRUD) propietarios, inquilinos, inmuebles, tipo de inmuebles, reservas y pagos.
+- Se pueden buscar inmuebles basándose en cupo de personas, fecha de disponibilidad y tipo de inmueble.
+- En la creación de inmuebles se establece una seña que se debe de pagar por adelantado + el monto diario.
+- Al crear una reserva, se calcula automáticamente cuanto hay que pagar por día basándose en el monto diario del inmueble multiplicado por el total de días reservados menos la seña que se pagó por adelantado.
+- Al finalizar una reserva antes de tiempo (no es lo mismo que la baja lógica de la tabla del index) desde la gestión de la misma, se genera un Pago automático con concepto de **Multa** y se calcula el valor de la misma.
+- Se puede **renovar** una reserva desde la vista de detalles de la misma, creando así una nueva reserva con el mismo inquilino e inmueble, distintas fechas y valor.
+- Se pueden ver todos los pagos realizados, incluso los "anulados". También se pueden reactivar los pagos desde la lista.
+
+### Falta implementar:
+- La lista de informes al final de la narrativa.
+- Mejoras de calidad de vida
+---
+
+### Usuarios de prueba:
+
+**Administrador:**
+- usuario: admin
+- contraseña: admin
+
+**Empleado:**
+- usuario: empleado2
+- contraseña: 123456
+
+> También se pueden crear nuevos usuarios pero solo con el rol de empleado.
+
 
 ---
 
-## 📐 Modelado de Datos
+##  Modelado de Datos
 
 A continuación se presenta el esquema del modelo de datos correspondiente a la aplicación:
 
@@ -36,7 +63,7 @@ A continuación se presenta el esquema del modelo de datos correspondiente a la 
 
 ---
 
-## 🚀 Guía de Instalación y Ejecución
+## Guía de Instalación y Ejecución
 
 Seguí estos pasos para clonar, configurar y ejecutar el proyecto localmente:
 
@@ -62,11 +89,16 @@ git clone https://github.com/lunalopardo/reservas_temporales.git
 
 ### 2. Configurar la Base de Datos (XAMPP / phpMyAdmin)
 
-1. Abrí XAMPP Control Panel e iniciá los servicios de Apache y MySQL.
-2. Ingresá a phpMyAdmin desde tu navegador (http://localhost/phpmyadmin).
-3. Importá el script SQL ubicado en la carpeta del proyecto (ej: /database/script_bd.sql). Va a crear una nueva base de datos y a cargar algunos datos de prueba.
+El repositorio incluye un dump completo de la base de datos con datos de prueba, registros cargados e imágenes (`/database/inmobiliaria_db.sql`).
 
-> IMPORTANTE: No tener otra base de datos con el nombre "inmobiliaria_db", ya que va a eliminarla primero y a volver a crearla.
+**Pasos para importarla:**
+
+1. Abrí **XAMPP Control Panel** e iniciá los servicios de **Apache** y **MySQL**.
+2. Ingresá a **phpMyAdmin** desde tu navegador ([http://localhost/phpmyadmin](http://localhost/phpmyadmin)).
+3. Creá una nueva base de datos llamada **`inmobiliaria_db`**:
+4. Seleccioná la base recién creada (`inmobiliaria_db`) y andá a la pestaña **Importar** en el menú superior.
+5. Hacé clic en **Seleccionar archivo** y buscá el archivo `inmobiliaria_db.sql` ubicado dentro de la carpeta `database/` del proyecto.
+6. Desplázate hasta el final y hacé clic en **Importar**.
 
 ---
 
@@ -84,16 +116,7 @@ Abrí el archivo appsettings.json en la raíz del proyecto y verificá/actualiz�
 
 ---
 
-### 4. Restaurar dependencias y compilar
-
-En la terminal, dentro de la carpeta raíz del proyecto (reservas_temporales\src), ejecutá:
-```
-dotnet restore
-dotnet build
-```
----
-
-### 5. Ejecutar la aplicación
+### 4. Ejecutar la aplicación
 
 Para iniciar el servidor de desarrollo:
 
