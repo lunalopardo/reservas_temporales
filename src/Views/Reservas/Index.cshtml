@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Listado de Reservas";
+    var buscar = ViewData["FiltroBuscar"] as string;
+    var vigentes = ViewData["FiltroVigentes"] as bool? ?? false;
+    var diasParaTerminar = ViewData["FiltroDiasParaTerminar"] as int?;
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -18,12 +21,51 @@
         </div>
     }
 
-    <div class="encabezado-tabla">
+    <div class="encabezado-tabla mb-4">
         <h2>Listado de Reservas</h2>
         <a asp-action="Create" class="boton-nuevo">
             + Nueva Reserva
         </a>
     </div>
+
+    <!-- Formulario de Filtros -->
+    <form method="get" asp-action="Index" class="mb-4">
+        <div class="tarjeta-filtros mb-4">
+            <form method="get" asp-action="Index">
+                <div class="filtros-inputs">
+                    <div class="filtro-campo flex-grow-1">
+                        <input type="text" name="buscar" value="@buscar" class="form-control-filtro"
+                               placeholder="Buscar por dirección, inquilino o DNI..." />
+                    </div>
+                    <div class="filtro-campo">
+                        <select name="diasParaTerminar" class="form-control-filtro">
+                            <option value="">-- Terminan en... --</option>
+                            <option value="5" selected="@(diasParaTerminar == 5)">Próximos 5 días</option>
+                            <option value="10" selected="@(diasParaTerminar == 10)">Próximos 10 días</option>
+                            <option value="30" selected="@(diasParaTerminar == 30)">Próximos 30 días</option>
+                            <option value="60" selected="@(diasParaTerminar == 60)">Próximos 60 días</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filtros-pie">
+                    <label class="opcion-checkbox">
+                        <input type="checkbox" name="vigentes" value="true" @(vigentes ? "checked" : "") />
+                        <span>Solo vigentes</span>
+                    </label>
+
+                    <div class="filtros-acciones">
+                        <button type="submit" class="btn-filtrar" title="Buscar">
+                            <span class="material-symbols-outlined">search</span>
+                        </button>
+                        <a asp-action="Index" class="btn-limpiar" title="Limpiar filtros">
+                            <span class="material-symbols-outlined">filter_alt_off</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </form>
 
     <table class="tabla-datos">
         <thead>

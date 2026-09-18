@@ -37,16 +37,18 @@ namespace ReservasTemporales.Controllers
         }
 
         // GET: Reservas
-        public IActionResult Index(string buscar, int pagina = 1)
+        public IActionResult Index(string buscar, bool? vigentes, int? diasParaTerminar, int pagina = 1)
         {
             int registrosPorPagina = 10;
 
-            var listado = _repositorioReserva.GetPaginado(buscar, pagina, registrosPorPagina);
+            var listado = _repositorioReserva.GetPaginado(buscar, vigentes, diasParaTerminar, pagina, registrosPorPagina);
 
-            int totalRegistros = _repositorioReserva.ObtenerCantidad(buscar);
+            int totalRegistros = _repositorioReserva.ObtenerCantidad(buscar, vigentes, diasParaTerminar);
             int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
 
-            ViewData["FiltroActual"] = buscar;
+            ViewData["FiltroBuscar"] = buscar;
+            ViewData["FiltroVigentes"] = vigentes;
+            ViewData["FiltroDiasParaTerminar"] = diasParaTerminar;
             ViewData["PaginaActual"] = pagina;
             ViewData["TotalPaginas"] = totalPaginas == 0 ? 1 : totalPaginas;
 
