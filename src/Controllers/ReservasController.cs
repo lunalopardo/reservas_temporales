@@ -222,13 +222,10 @@ namespace ReservasTemporales.Controllers
         }
 
         // FINALIZACIÓN TEMPRANA + MULTAS
-        private (decimal montoMulta, decimal porcentaje, int diasTranscurridos, int totalDias, decimal costoTotalOriginal)? ObtenerCalculoMulta(int idReserva, DateTime fechaTerminacion)
+        private (decimal montoMulta, decimal porcentaje, int diasTranscurridos, int totalDias, decimal montoRestante)? ObtenerCalculoMulta(int idReserva, DateTime fechaTerminacion)
         {
             var reserva = _repositorioReserva.GetById(idReserva);
             if (reserva == null) return null;
-
-            var inmueble = _repositorioInmueble.GetById(reserva.IdInmueble);
-            if (inmueble == null) return null;
 
             int totalDiasOriginales = (reserva.FechaHasta - reserva.FechaDesde).Days;
             if (totalDiasOriginales <= 0)
@@ -237,31 +234,51 @@ namespace ReservasTemporales.Controllers
             }
 
             int diasTranscurridos = (fechaTerminacion - reserva.FechaDesde).Days;
-            if (diasTranscurridos < 0) diasTranscurridos = 0;
 
-            decimal costoTotalOriginal = totalDiasOriginales * inmueble.Precio;
+            if (diasTranscurridos < 0) diasTranscurridos = 0;
+            if (diasTranscurridos > totalDiasOriginales) diasTranscurridos = totalDiasOriginales;
+
+            int diasRestantes = totalDiasOriginales - diasTranscurridos;
+
+            // Regla: 50% si cumplió menos de la mitad del tiempo total, 25% si cumplió la mitad o más
             bool esMenosDeLaMitad = diasTranscurridos < (totalDiasOriginales / 2.0);
             decimal porcentajeAplicado = esMenosDeLaMitad ? 50m : 25m;
-            decimal montoMulta = costoTotalOriginal * (porcentajeAplicado / 100m);
 
-            return (montoMulta, porcentajeAplicado, diasTranscurridos, totalDiasOriginales, costoTotalOriginal);
+            // Cálculo sobre el monto del tiempo restante no usado
+            decimal montoRestante = diasRestantes * reserva.MontoDiario;
+            decimal montoMulta = montoRestante * (porcentajeAplicado / 100m);
+
+            return (montoMulta, porcentajeAplicado, diasTranscurridos, totalDiasOriginales, montoRestante);
         }
 
         // Cálculo preliminar para la vista
         [HttpGet]
         public IActionResult CalcularMultaAnticipada(int idReserva, DateTime fTerminacion)
         {
-            var calculo = ObtenerCalculoMulta(idReserva, fTerminacion);
-            if (calculo == null) return NotFound();
+            var reserva = _repositorioReserva.GetById(idReserva);
+            if (reserva == null) return NotFound();
 
-            var res = calculo.Value;
+            int totalDias = (reserva.FechaHasta - reserva.FechaDesde).Days;
+            int diasTranscurridos = (fTerminacion - reserva.FechaDesde).Days;
+
+            if (diasTranscurridos < 0) diasTranscurridos = 0;
+            if (diasTranscurridos > totalDias) diasTranscurridos = totalDias;
+
+            int diasRestantes = totalDias - diasTranscurridos;
+
+            // Regla: 50% si cumplió menos de la mitad del tiempo total, 25% si cumplió la mitad o más
+            int porcentaje = (diasTranscurridos < (totalDias / 2.0)) ? 50 : 25;
+
+            decimal montoRestante = diasRestantes * reserva.MontoDiario;
+            decimal montoMulta = montoRestante * (porcentaje / 100m);
+
             return Json(new
             {
-                montoMulta = res.montoMulta,
-                porcentaje = res.porcentaje,
-                diasTranscurridos = res.diasTranscurridos,
-                totalDias = res.totalDias,
-                costoTotalOriginal = res.costoTotalOriginal
+                montoMulta = montoMulta,
+                porcentaje = porcentaje,
+                diasTranscurridos = diasTranscurridos,
+                totalDias = totalDias,
+                montoRestante = montoRestante
             });
         }
 

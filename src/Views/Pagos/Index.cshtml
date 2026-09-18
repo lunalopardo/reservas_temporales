@@ -105,7 +105,12 @@
                 {
                     <tr>
                         <td>@item.Id</td>
-                        <td>#@item.IdReserva</td>
+                        <td>
+                            <a asp-action="Index" asp-route-idReserva="@item.IdReserva"
+                               style="text-decoration: none; font-weight: bold;">
+                                #@item.IdReserva
+                            </a>
+                        </td>
                         <td>@item.NombreInquilino</td>
                         <td>@item.DireccionInmueble</td>
                         <td>@item.Concepto</td>
