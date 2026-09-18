@@ -26,6 +26,8 @@ namespace ReservasTemporales.Repositories
               AND (@buscar IS NULL OR i.direccion LIKE @buscar 
                                    OR iq.nombre LIKE @buscar 
                                    OR iq.apellido LIKE @buscar 
+                                   OR CONCAT(iq.nombre, ' ', iq.apellido) LIKE @buscar
+                                   OR CONCAT(iq.apellido, ' ', iq.nombre) LIKE @buscar
                                    OR iq.dni LIKE @buscar)
               AND (@soloVigentes IS NULL OR @soloVigentes = 0 OR (CURRENT_DATE() BETWEEN r.fecha_desde AND COALESCE(r.fecha_terminacion_anticipada, r.fecha_hasta)))
               AND (@diasParaTerminar IS NULL OR (COALESCE(r.fecha_terminacion_anticipada, r.fecha_hasta) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL @diasParaTerminar DAY)))
@@ -69,6 +71,8 @@ namespace ReservasTemporales.Repositories
               AND (@buscar IS NULL OR i.direccion LIKE @buscar 
                                    OR iq.nombre LIKE @buscar 
                                    OR iq.apellido LIKE @buscar 
+                                   OR CONCAT(iq.nombre, ' ', iq.apellido) LIKE @buscar
+                                   OR CONCAT(iq.apellido, ' ', iq.nombre) LIKE @buscar
                                    OR iq.dni LIKE @buscar)
               AND (@soloVigentes IS NULL OR @soloVigentes = 0 OR (CURRENT_DATE() BETWEEN r.fecha_desde AND COALESCE(r.fecha_terminacion_anticipada, r.fecha_hasta)))
               AND (@diasParaTerminar IS NULL OR (COALESCE(r.fecha_terminacion_anticipada, r.fecha_hasta) BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL @diasParaTerminar DAY)))";

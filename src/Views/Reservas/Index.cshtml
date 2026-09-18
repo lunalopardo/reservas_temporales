@@ -5,6 +5,9 @@
     var buscar = ViewData["FiltroBuscar"] as string;
     var vigentes = ViewData["FiltroVigentes"] as bool? ?? false;
     var diasParaTerminar = ViewData["FiltroDiasParaTerminar"] as int?;
+    
+    int paginaActual = ViewData["PaginaActual"] as int? ?? 1;
+    int totalPaginas = ViewData["TotalPaginas"] as int? ?? 1;
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -28,44 +31,41 @@
         </a>
     </div>
 
-    <!-- Formulario de Filtros -->
-    <form method="get" asp-action="Index" class="mb-4">
-        <div class="tarjeta-filtros mb-4">
-            <form method="get" asp-action="Index">
-                <div class="filtros-inputs">
-                    <div class="filtro-campo flex-grow-1">
-                        <input type="text" name="buscar" value="@buscar" class="form-control-filtro"
-                               placeholder="Buscar por dirección, inquilino o DNI..." />
-                    </div>
-                    <div class="filtro-campo">
-                        <select name="diasParaTerminar" class="form-control-filtro">
-                            <option value="">-- Terminan en... --</option>
-                            <option value="5" selected="@(diasParaTerminar == 5)">Próximos 5 días</option>
-                            <option value="10" selected="@(diasParaTerminar == 10)">Próximos 10 días</option>
-                            <option value="30" selected="@(diasParaTerminar == 30)">Próximos 30 días</option>
-                            <option value="60" selected="@(diasParaTerminar == 60)">Próximos 60 días</option>
-                        </select>
-                    </div>
+    <div class="tarjeta-filtros mb-4">
+        <form method="get" asp-action="Index">
+            <div class="filtros-inputs">
+                <div class="filtro-campo flex-grow-1">
+                    <input type="text" name="buscar" value="@buscar" class="form-control-filtro"
+                           placeholder="Buscar por dirección, inquilino o DNI..." />
                 </div>
-
-                <div class="filtros-pie">
-                    <label class="opcion-checkbox">
-                        <input type="checkbox" name="vigentes" value="true" @(vigentes ? "checked" : "") />
-                        <span>Solo vigentes</span>
-                    </label>
-
-                    <div class="filtros-acciones">
-                        <button type="submit" class="btn-filtrar" title="Buscar">
-                            <span class="material-symbols-outlined">search</span>
-                        </button>
-                        <a asp-action="Index" class="btn-limpiar" title="Limpiar filtros">
-                            <span class="material-symbols-outlined">filter_alt_off</span>
-                        </a>
-                    </div>
+                <div class="filtro-campo">
+                    <select name="diasParaTerminar" class="form-control-filtro">
+                        <option value="">-- Terminan en... --</option>
+                        <option value="5" selected="@(diasParaTerminar == 5)">Próximos 5 días</option>
+                        <option value="10" selected="@(diasParaTerminar == 10)">Próximos 10 días</option>
+                        <option value="30" selected="@(diasParaTerminar == 30)">Próximos 30 días</option>
+                        <option value="60" selected="@(diasParaTerminar == 60)">Próximos 60 días</option>
+                    </select>
                 </div>
-            </form>
-        </div>
-    </form>
+            </div>
+
+            <div class="filtros-pie">
+                <label class="opcion-checkbox">
+                    <input type="checkbox" name="vigentes" value="true" @(vigentes ? "checked" : "") />
+                    <span>Solo vigentes</span>
+                </label>
+
+                <div class="filtros-acciones">
+                    <button type="submit" class="btn-filtrar" title="Buscar">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                    <a asp-action="Index" class="btn-limpiar" title="Limpiar filtros">
+                        <span class="material-symbols-outlined">filter_alt_off</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
 
     <table class="tabla-datos">
         <thead>
@@ -109,12 +109,50 @@
                             <a asp-action="Delete" asp-route-id="@reserva.Id" class="boton-icono" title="Eliminar">
                                 <span class="material-symbols-outlined">delete</span>
                             </a>
+                            <a asp-controller="Pagos" asp-action="Index" asp-route-idReserva="@reserva.Id" class="boton-icono"
+                               title="Ver pagos de esta reserva">
+                                <span class="material-symbols-outlined">payments</span>
+                            </a>
                         </td>
                     </tr>
                 }
             }
         </tbody>
     </table>
+
+    <!-- Paginado -->
+    @if (totalPaginas > 1)
+    {
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="paginacion-custom">
+                <li class="pagina-item @(paginaActual == 1 ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
+                       asp-route-buscar="@buscar" asp-route-vigentes="@vigentes"
+                       asp-route-diasParaTerminar="@diasParaTerminar">
+                        &laquo; Anterior
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="pagina-item @(i == paginaActual ? "activo" : "")">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@buscar"
+                           asp-route-vigentes="@vigentes" asp-route-diasParaTerminar="@diasParaTerminar">
+                            @i
+                        </a>
+                    </li>
+                }
+
+                <li class="pagina-item @(paginaActual == totalPaginas ? "deshabilitado" : "")">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
+                       asp-route-buscar="@buscar" asp-route-vigentes="@vigentes"
+                       asp-route-diasParaTerminar="@diasParaTerminar">
+                        Siguiente &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>
 
 @section Scripts {

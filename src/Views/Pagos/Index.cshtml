@@ -5,6 +5,9 @@
     string filtroActual = ViewData["FiltroActual"] as string ?? "";
     int paginaActual = (int)(ViewData["PaginaActual"] ?? 1);
     int totalPaginas = (int)(ViewData["TotalPaginas"] ?? 1);
+
+    int? idReserva = ViewData["IdReserva"] as int?
+        ?? (int.TryParse(Context.Request.Query["idReserva"], out int resId) ? resId : null);
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -14,8 +17,32 @@
 
 <div class="contenedor-principal">
     <div class="encabezado-tabla">
-        <h2 class="titulo-vista" style="margin: 0; border-bottom: none; padding-bottom: 0;">Pagos</h2>
-        <a asp-action="Create" class="boton-nuevo">Nuevo Pago</a>
+        <h2 class="titulo-vista" style="margin: 0; border-bottom: none; padding-bottom: 0;">
+            @(idReserva.HasValue ? $"Pagos de Reserva #{idReserva}" : "Pagos")
+        </h2>
+        
+        <div class="d-flex gap-2 align-items-center">
+            @if (idReserva.HasValue)
+            {
+                <a asp-controller="Reservas" asp-action="Index" class="boton-volver" style="text-decoration: none;">
+                    <span>Volver</span>
+                </a>
+
+                <!-- Pago rápido para esta reserva -->
+                <button type="button" class="boton-nuevo" data-bs-toggle="modal" data-bs-target="#modalPagoRapido">
+                    <span class="material-symbols-outlined">bolt</span>
+                    <span>Pago Rápido</span>
+                </button>
+            }
+            else
+            {
+                <!-- Botón "Nuevo Pago" se esconde para no confundir con el pago rápido -->
+                <a asp-action="Create" class="boton-nuevo" style="text-decoration: none;">
+                    <span class="material-symbols-outlined">add</span>
+                    <span>Nuevo Pago</span>
+                </a>
+            }
+        </div>
     </div>
 
     @if (TempData["Mensaje"] != null)
@@ -28,22 +55,28 @@
     }
 
     <!-- Formulario de Búsqueda -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="d-flex gap-2 align-items-center">
-            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda"
-                   placeholder="Buscar por concepto, reserva, inquilino o inmueble..." />
+    @if (!idReserva.HasValue)
+    {
+        <form asp-action="Index" method="get" class="mb-4">
 
-            <button type="submit" class="boton-buscar">
-                <span class="material-symbols-outlined">search</span>
-                <span>Buscar</span>
-            </button>
+            <input type="hidden" name="idReserva" value="@idReserva" />
+       
+            <div class="d-flex gap-2 align-items-center">
+                <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda"
+                       placeholder="Buscar por concepto, reserva, inquilino o inmueble..." />
 
-            @if (!string.IsNullOrEmpty(filtroActual))
-            {
-                <a asp-action="Index" class="boton-limpiar">Limpiar</a>
-            }
-        </div>
-    </form>
+                <button type="submit" class="boton-buscar">
+                    <span class="material-symbols-outlined">search</span>
+                    <span>Buscar</span>
+                </button>
+
+                @if (!string.IsNullOrEmpty(filtroActual))
+                {
+                    <a asp-action="Index" asp-route-idReserva="@idReserva" class="boton-limpiar">Limpiar</a>
+                }
+            </div>
+        </form>
+    }
 
     <table class="tabla-datos">
         <thead>
@@ -119,7 +152,7 @@
             <ul class="paginacion-custom">
                 <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
                     <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
-                       asp-route-buscar="@filtroActual">
+                       asp-route-buscar="@filtroActual" asp-route-idReserva="@idReserva">
                         Anterior
                     </a>
                 </li>
@@ -127,7 +160,8 @@
                 @for (int i = 1; i <= totalPaginas; i++)
                 {
                     <li class="pagina-item @(i == paginaActual ? "activo" : "")">
-                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual"
+                           asp-route-idReserva="@idReserva">
                             @i
                         </a>
                     </li>
@@ -135,7 +169,7 @@
 
                 <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
                     <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
-                       asp-route-buscar="@filtroActual">
+                       asp-route-buscar="@filtroActual" asp-route-idReserva="@idReserva">
                         Siguiente
                     </a>
                 </li>
@@ -144,7 +178,51 @@
     }
 </div>
 
-<!-- Modal de Confirmación -->
+<!-- Modal para Pago rápido -->
+@if (idReserva.HasValue)
+{
+    <div class="modal fade" id="modalPagoRapido" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content tarjeta-detalle">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title titulo-vista" style="margin: 0; padding-bottom: 0; border-bottom: none;">
+                        Pago Rápido - Reserva #@idReserva
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            style="filter: invert(1);"></button>
+                </div>
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="IdReserva" value="@idReserva" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Importe</label>
+                            <input type="number" step="0.01" name="Importe" class="form-control" required
+                                   placeholder="0.00" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Concepto</label>
+                            <input type="text" name="Concepto" class="form-control" value="Pago de Reserva #@idReserva"
+                                   required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Pago</label>
+                            <input type="date" name="FechaPago" class="form-control"
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer acciones"
+                         style="border-top: 1px solid var(--border-color); justify-content: flex-end;">
+                        <button type="button" class="boton-volver" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="boton-guardar">Registrar Pago</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal de Confirmación de Anulación / Reactivación -->
 <div class="modal fade" id="modalConfirmarEstado" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content tarjeta-detalle">

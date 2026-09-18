@@ -28,17 +28,59 @@ public class PagosController : Controller
     }
 
     // GET: Pagos
-    public IActionResult Index(string? buscar, int pagina = 1)
+    public IActionResult Index(string buscar, int pagina = 1, int? idReserva = null)
     {
-        int tamPagina = 10;
-        var pagos = _repositorioPago.GetPaginado(buscar, pagina, tamPagina);
-        int totalRegistros = _repositorioPago.ObtenerCantidad(buscar);
+        int cantidadPorPagina = 10;
+        int totalRegistros = 0;
+        IEnumerable<Pago> pagos;
+
+        if (idReserva.HasValue)
+        {
+            var reserva = _repositorioReserva.GetById(idReserva.Value);
+            if (reserva == null)
+            {
+                return NotFound();
+            }
+
+            pagos = _repositorioPago.GetPorReserva(idReserva.Value);
+            totalRegistros = pagos.Count();
+            ViewBag.ReservaFiltro = reserva;
+            ViewBag.PagoNuevo = new Pago
+            {
+                IdReserva = idReserva.Value,
+                FechaPago = DateTime.Now
+            };
+        }
+        else
+        {
+            totalRegistros = _repositorioPago.ObtenerCantidad(buscar);
+            pagos = _repositorioPago.GetPaginado(buscar, pagina, cantidadPorPagina);
+        }
 
         ViewData["FiltroActual"] = buscar;
         ViewData["PaginaActual"] = pagina;
-        ViewData["TotalPaginas"] = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+        ViewData["TotalPaginas"] = (int)Math.Ceiling((double)totalRegistros / cantidadPorPagina);
 
         return View(pagos);
+    }
+
+    // POST: Pagos/CrearPagoRapido
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult CrearPagoRapido(Pago pago)
+    {
+        pago.CreadoPorUserId = ObtenerUsuarioIdActual();
+        ModelState.Remove(nameof(pago.CreadoPorUserId));
+
+        if (ModelState.IsValid)
+        {
+            _repositorioPago.Create(pago);
+            TempData["Mensaje"] = "Pago registrado exitosamente.";
+            return RedirectToAction(nameof(Index), new { idReserva = pago.IdReserva });
+        }
+
+        TempData["Error"] = "Error al registrar el pago. Verifique los datos ingresados.";
+        return RedirectToAction(nameof(Index), new { idReserva = pago.IdReserva });
     }
 
     // GET: Pagos/Details/5
@@ -132,9 +174,6 @@ public class PagosController : Controller
 
         int usuarioId = ObtenerUsuarioIdActual();
 
-        // Si tu método AnularLogico acepta el id del usuario que anula:
-        // _repositorioPago.AnularLogico(id, usuarioId);
-        // De lo contrario, si solo recibe id, actualizamos directamente o llamamos al overload:
         _repositorioPago.AnularLogico(id, usuarioId);
 
         TempData["Mensaje"] = "El pago ha sido anulado correctamente.";
@@ -157,5 +196,55 @@ public class PagosController : Controller
         TempData["Mensaje"] = "El pago ha sido reactivado correctamente.";
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // GET: Pagos/PorReserva/5
+    public IActionResult PorReserva(int id)
+    {
+        var reserva = _repositorioReserva.GetById(id);
+        if (reserva == null)
+        {
+            return NotFound();
+        }
+
+        var pagos = _repositorioPago.GetPorReserva(id);
+
+        ViewBag.Reserva = reserva;
+        ViewBag.PagoNuevo = new Pago
+        {
+            IdReserva = id,
+            FechaPago = DateTime.Now
+        };
+
+        return View(pagos);
+    }
+
+    // POST: Pagos/PorReserva
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult PorReserva(Pago pago)
+    {
+        pago.CreadoPorUserId = ObtenerUsuarioIdActual();
+        ModelState.Remove(nameof(pago.CreadoPorUserId));
+
+        if (ModelState.IsValid)
+        {
+            _repositorioPago.Create(pago);
+            TempData["Mensaje"] = "Pago registrado exitosamente.";
+            return RedirectToAction(nameof(PorReserva), new { id = pago.IdReserva });
+        }
+
+        var reserva = _repositorioReserva.GetById(pago.IdReserva);
+        if (reserva == null)
+        {
+            return NotFound();
+        }
+
+        var pagos = _repositorioPago.GetPorReserva(pago.IdReserva);
+        ViewBag.Reserva = reserva;
+        ViewBag.PagoNuevo = pago;
+
+        TempData["Error"] = "Por favor, complete correctamente los campos del pago.";
+        return View(pagos);
     }
 }
