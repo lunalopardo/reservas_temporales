@@ -76,6 +76,7 @@
                 <th>Fecha desde</th>
                 <th>Fecha hasta</th>
                 <th>Monto diario</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -83,7 +84,7 @@
             @if (Model.Count == 0)
             {
                 <tr>
-                    <td colspan="7" class="text-center py-3">
+                    <td colspan="8" class="text-center py-3">
                         No hay reservas registradas.
                     </td>
                 </tr>
@@ -92,6 +93,27 @@
             {
                 foreach (var reserva in Model)
                 {
+                    // Lógica para determinar el Estado y la insignia (badge)
+                    string estadoTexto;
+                    string estadoClass;
+
+                    // Reemplaza 'FechaTerminacion' si tu propiedad se llama diferente (ej: FechaTerminacionTemprana)
+                    if (reserva.FechaTerminacionAnticipada.HasValue)
+                    {
+                        estadoTexto = "Cancelada";
+                        estadoClass = "bg-warning text-dark";
+                    }
+                    else if (reserva.FechaHasta.Date >= DateTime.Today)
+                    {
+                        estadoTexto = "Activa";
+                        estadoClass = "bg-success";
+                    }
+                    else
+                    {
+                        estadoTexto = "Finalizada";
+                        estadoClass = "bg-secondary";
+                    }
+
                     <tr>
                         <td>@reserva.Id</td>
                         <td>@reserva.Inmueble?.Direccion</td>
@@ -99,6 +121,11 @@
                         <td>@reserva.FechaDesde.ToString("dd/MM/yyyy")</td>
                         <td>@reserva.FechaHasta.ToString("dd/MM/yyyy")</td>
                         <td>$ @reserva.MontoDiario.ToString("N2")</td>
+                        <td>
+                            <span class="badge @estadoClass">
+                                @estadoTexto
+                            </span>
+                        </td>
                         <td class="columna-acciones">
                             <a asp-action="Details" asp-route-id="@reserva.Id" class="boton-icono" title="Ver detalles">
                                 <span class="material-symbols-outlined">visibility</span>
