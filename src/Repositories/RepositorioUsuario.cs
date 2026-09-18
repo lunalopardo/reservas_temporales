@@ -239,6 +239,31 @@ public class RepositorioUsuario : RepositorioBase
         return command.ExecuteNonQuery();
     }
 
+    public bool ExisteNombreUsuario(string nombreUsuario, int? idExcluir = null)
+    {
+        string sql = "SELECT COUNT(*) FROM usuario WHERE nombre_usuario = @nombreUsuario AND (@id IS NULL OR id != @id)";
+        using MySqlConnection connection = new(connectionString);
+        using MySqlCommand command = new(sql, connection);
+        command.Parameters.AddWithValue("@nombreUsuario", nombreUsuario);
+        command.Parameters.AddWithValue("@id", (object?)idExcluir ?? DBNull.Value);
+
+        connection.Open();
+        return Convert.ToInt32(command.ExecuteScalar()) > 0;
+    }
+
+    public bool ExisteEmail(string email, int? idExcluir = null)
+    {
+        string sql = "SELECT COUNT(*) FROM usuario WHERE email = @email AND (@id IS NULL OR id != @id)";
+        using MySqlConnection connection = new(connectionString);
+        using MySqlCommand command = new(sql, connection);
+        command.Parameters.AddWithValue("@email", email);
+        command.Parameters.AddWithValue("@id", (object?)idExcluir ?? DBNull.Value);
+
+        connection.Open();
+        return Convert.ToInt32(command.ExecuteScalar()) > 0;
+    }
+
+
     internal static Usuario ParseUsuario(MySqlDataReader reader)
     {
         return new Usuario

@@ -299,6 +299,16 @@ public class UsuariosController : Controller
     {
         ModelState.Remove(nameof(Usuario.Avatar));
 
+        if (_repositorioUsuario.ExisteNombreUsuario(usuario.NombreUsuario))
+        {
+            ModelState.AddModelError(nameof(Usuario.NombreUsuario), "El nombre de usuario ya está en uso.");
+        }
+
+        if (_repositorioUsuario.ExisteEmail(usuario.Email))
+        {
+            ModelState.AddModelError(nameof(Usuario.Email), "El correo electrónico ya se encuentra registrado.");
+        }
+
         if (!ModelState.IsValid)
         {
             return View(usuario);
@@ -322,16 +332,14 @@ public class UsuariosController : Controller
         }
 
         // Hashear la contraseña con el IPasswordHasher inyectado
-        usuario.Password = _passwordHasher.HashPassword(usuario, usuario.Password);
-
-        // Asignar rol por defecto (empleado)
         if (usuario.Rol == 0)
         {
             usuario.Rol = (int)enRoles.Empleado;
         }
         usuario.Activo = true;
 
-        int resultado = _repositorioUsuario.Create(usuario);
+        // 5. Intentar guardar en la base de datos
+        int resultado = _repositorioUsuario.Create(usuario, _passwordHasher);
 
         if (resultado > 0)
         {
