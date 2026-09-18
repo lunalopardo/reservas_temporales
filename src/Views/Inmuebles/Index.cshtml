@@ -3,8 +3,19 @@
 @{
     ViewData["Title"] = "Listado de Inmuebles";
     string filtroActual = ViewData["FiltroActual"] as string ?? "";
+    int? propietarioSel = ViewData["PropietarioSeleccionado"] as int?;
+    int? estadoDisp = ViewData["EstadoDisponibilidad"] as int?;
+    bool masReservados = (bool)(ViewData["MasReservados"] ?? false);
+    int? diasSinReserva = ViewData["DiasSinReserva"] as int?;
+
     int paginaActual = (int)(ViewData["PaginaActual"] ?? 1);
     int totalPaginas = (int)(ViewData["TotalPaginas"] ?? 1);
+
+    bool hayFiltrosActivos = !string.IsNullOrEmpty(filtroActual)
+                             || propietarioSel.HasValue
+                             || estadoDisp.HasValue
+                             || masReservados
+                             || diasSinReserva.HasValue;
 }
 
 <link rel="stylesheet" href="~/css/formularios.css" />
@@ -18,111 +29,188 @@
         <a asp-action="Create" class="boton-nuevo">+ Nuevo Inmueble</a>
     </div>
 
-    <!-- Buscador -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="d-flex gap-2 align-items-center">
-            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda"
-                   placeholder="Buscar por dirección o propietario..." />
+    <!-- Buscador y Filtros -->
+    <form method="get" asp-action="Index" class="filtros-contenedor">
+        <div class="filtros-fila">
+            <div class="filtro-grupo flex-grow">
+                <input type="text" name="buscar" value="@ViewData["FiltroActual"]" class="form-control"
+                       placeholder="Buscar por dirección..." />
+            </div>
 
-            <button type="submit" class="boton-buscar">
-                <span class="material-symbols-outlined">search</span>
-                <span>Buscar</span>
-            </button>
+            <div class="filtro-grupo select-propietario">
+                <select id="IdPropietarioFiltro" name="idPropietario" class="form-control">
+                    @if (ViewData["IdPropietarioSeleccionado"] != null)
+                    {
+                        <option value="@ViewData["IdPropietarioSeleccionado"]" selected="selected">
+                            @ViewData["NombrePropietarioSeleccionado"]</option>
+                        }
+                else
+                        {
+                            <option value="">-- Propietario --</option>
+                        }
+                    </select>
+                </div>
 
-            @if (!string.IsNullOrEmpty(filtroActual))
-            {
-                <a asp-action="Index" class="boton-limpiar">Limpiar</a>
-            }
-        </div>
-    </form>
+                <div class="filtro-grupo">
+                    <select name="estadoDisponibilidad" class="form-control">
+                        <option value="">-- Estado --</option>
+                        <option value="1" selected="@(estadoDisp == 1)">Disponible</option>
+                        <option value="0" selected="@(estadoDisp == 0)">No Disponible</option>
+                    </select>
+                </div>
 
-    <table class="tabla-datos">
-        <thead>
-            <tr>
-                <th>Propietario</th>
-                <th>Tipo</th>
-                <th>Dirección</th>
-                <th>Cupo</th>
-                <th>Precio / Día</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
+                <div class="filtro-grupo">
+                    <select name="diasSinReserva" class="form-control">
+                        <option value="">-- Sin reservas en... --</option>
+                        <option value="30" selected="@(diasSinReserva == 30)">Últimos 30 días</option>
+                        <option value="60" selected="@(diasSinReserva == 60)">Últimos 60 días</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filtros-fila filtros-fila-inferior">
+                <div class="filtro-checkbox">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="masReservados" value="true" @(ViewData["MasReservados"]?.ToString() ==
+                               "true" ? "checked" : "") />
+                        <span>Ordenar por más reservados (últimos 365 días)</span>
+                    </label>
+                </div>
+
+                <div class="filtros-acciones">
+                    <button type="submit" class="boton-buscar" title="Buscar">
+                        <i class="material-symbols-outlined">search</i>
+                    </button>
+                    <a asp-action="Index" class="boton-limpiar" title="Limpiar filtros">
+                        <i class="material-symbols-outlined">filter_alt_off</i>
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <table class="tabla-datos">
+            <thead>
                 <tr>
-                    <td colspan="7" class="text-center py-3">No se encontraron inmuebles registrados.</td>
+                    <th>Propietario</th>
+                    <th>Tipo</th>
+                    <th>Dirección</th>
+                    <th>Cupo</th>
+                    <th>Precio / Día</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
-            }
-            else
-            {
-                @foreach (var item in Model)
+            </thead>
+            <tbody>
+                @if (!Model.Any())
                 {
                     <tr>
-                        <td>
-                            @($"{item.Propietario?.Nombre} {item.Propietario?.Apellido}")
-                        </td>
-                        <td>@item.TipoInmueble?.Nombre</td>
-                        <td>@item.Direccion</td>
-                        <td>@item.Cupo pers.</td>
-                        <td>$@item.Precio.ToString("N2")</td>
-                        <td>
-                            @if (item.EstaDisponibleHoy)
-                            {
-                                <span class="badge badge-disponible">Disponible</span>
-                            }
-                            else
-                            {
-                                <span class="badge badge-no-disponible">No Disponible</span>
-                            }
-                        </td>
-                        <td class="columna-acciones">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="boton-icono" title="Ver detalles">
-                                <span class="material-symbols-outlined">visibility</span>
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="boton-icono" title="Editar">
-                                <span class="material-symbols-outlined">edit</span>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="boton-icono boton-icono-eliminar"
-                               title="Borrar">
-                                <span class="material-symbols-outlined">delete</span>
-                            </a>
-                        </td>
+                        <td colspan="7" class="text-center py-3">No se encontraron inmuebles registrados.</td>
                     </tr>
                 }
-            }
-        </tbody>
-    </table>
-
-    <!-- Paginado -->
-    @if (totalPaginas > 1)
-    {
-        <nav class="d-flex justify-content-center mt-4">
-            <ul class="paginacion-custom">
-                <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
-                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
-                       asp-route-buscar="@filtroActual">
-                        Anterior
-                    </a>
-                </li>
-
-                @for (int i = 1; i <= totalPaginas; i++)
+                else
                 {
-                    <li class="pagina-item @(i == paginaActual ? "activo" : "")">
-                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual">
-                            @i
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @($"{item.Propietario?.Nombre} {item.Propietario?.Apellido}")
+                            </td>
+                            <td>@item.TipoInmueble?.Nombre</td>
+                            <td>@item.Direccion</td>
+                            <td>@item.Cupo pers.</td>
+                            <td>$@item.Precio.ToString("N2")</td>
+                            <td>
+                                @if (item.EstaDisponibleHoy)
+                                {
+                                    <span class="badge bg-success">Disponible</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">No Disponible</span>
+                                }
+                            </td>
+                            <td class="columna-acciones">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="boton-icono" title="Ver detalles">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="boton-icono" title="Editar">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="boton-icono boton-icono-eliminar"
+                                   title="Borrar">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <!-- Paginado -->
+        @if (totalPaginas > 1)
+        {
+            <nav class="d-flex justify-content-center mt-4">
+                <ul class="paginacion-custom">
+                    <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
+                           asp-route-buscar="@filtroActual" asp-route-idPropietario="@propietarioSel"
+                           asp-route-estadoDisponibilidad="@estadoDisp" asp-route-masReservados="@masReservados"
+                           asp-route-diasSinReserva="@diasSinReserva">
+                            Anterior
                         </a>
                     </li>
-                }
 
-                <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
-                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
-                       asp-route-buscar="@filtroActual">
-                        Siguiente
-                    </a>
-                </li>
-            </ul>
-        </nav>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="pagina-item @(i == paginaActual ? "activo" : "")">
+                            <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@i" asp-route-buscar="@filtroActual"
+                               asp-route-idPropietario="@propietarioSel" asp-route-estadoDisponibilidad="@estadoDisp"
+                               asp-route-masReservados="@masReservados" asp-route-diasSinReserva="@diasSinReserva">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
+                        <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
+                           asp-route-buscar="@filtroActual" asp-route-idPropietario="@propietarioSel"
+                           asp-route-estadoDisponibilidad="@estadoDisp" asp-route-masReservados="@masReservados"
+                           asp-route-diasSinReserva="@diasSinReserva">
+                            Siguiente
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                $('#IdPropietarioFiltro').select2({
+                    language: "es",
+                    placeholder: "-- Propietario --",
+                    allowClear: true,
+                    minimumInputLength: 2,
+                    ajax: {
+                        delay: 300,
+                        dataType: "json",
+                        url: function (params) {
+                            let q = params.term ? encodeURIComponent(params.term) : "";
+                            return `/Propietarios/Buscar/${q}`;
+                        },
+                        processResults: function (res) {
+                            let lista = res.datos || res;
+                            return {
+                                results: lista.map(p => ({
+                                    id: p.idPropietario,
+                                    text: p.texto
+                                }))
+                            };
+                        }
+                    }
+                });
+            });
+        </script>
     }
-</div>

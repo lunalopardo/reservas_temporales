@@ -54,7 +54,7 @@
         </div>
 
         <div class="campo">
-            <label asp-for="PorcentajeSena">Seña al reservar</label>
+            <label asp-for="PorcentajeSena">Seña al reservar (0-100%)</label>
             <input asp-for="PorcentajeSena" type="number" step="0.01" class="form-control" />
             <span asp-validation-for="PorcentajeSena" class="mensaje-error"></span>
         </div>
@@ -86,7 +86,7 @@
             $('#IdPropietario').select2({
                 language: "es",
                 placeholder: "Escriba para buscar propietario...",
-                minimumInputLength: 3,
+                minimumInputLength: 1,
                 ajax: {
                     delay: 250,
                     dataType: "json",

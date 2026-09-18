@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using ReservasTemporales.Models;
 using ReservasTemporales.Repositories;
 
-
 namespace ReservasTemporales.Controllers
 {
     [Authorize]
@@ -24,17 +23,40 @@ namespace ReservasTemporales.Controllers
             _repositorioTipoInmueble = repositorioTipoInmueble;
         }
 
-        // Listar (con paginado)
-        public IActionResult Index(string? buscar, int pagina = 1)
+        // Listar con filtros y paginado
+        public IActionResult Index(
+            string? buscar,
+            int? idPropietario,
+            int? estadoDisponibilidad,
+            bool masReservados = false,
+            int? diasSinReserva = null,
+            int pagina = 1)
         {
             int registrosPorPagina = 10;
 
-            var listado = _repositorioInmueble.GetPaginado(buscar, pagina, registrosPorPagina);
+            var listado = _repositorioInmueble.GetPaginado(
+                buscar,
+                idPropietario,
+                estadoDisponibilidad,
+                masReservados,
+                diasSinReserva,
+                pagina,
+                registrosPorPagina
+            );
 
-            int totalRegistros = _repositorioInmueble.ObtenerCantidad(buscar);
+            int totalRegistros = _repositorioInmueble.ObtenerCantidad(buscar, idPropietario, estadoDisponibilidad, diasSinReserva);
             int totalPaginas = (int)Math.Ceiling((double)totalRegistros / registrosPorPagina);
 
+            // Cargar select de propietarios para el filtro
+            var propietarios = _repositorioPropietario.GetActivos()
+                .Select(p => new { p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" });
+            ViewBag.Propietarios = new SelectList(propietarios, "IdPropietario", "NombreCompleto", idPropietario);
+
             ViewData["FiltroActual"] = buscar;
+            ViewData["PropietarioSeleccionado"] = idPropietario;
+            ViewData["EstadoDisponibilidad"] = estadoDisponibilidad;
+            ViewData["MasReservados"] = masReservados;
+            ViewData["DiasSinReserva"] = diasSinReserva;
             ViewData["PaginaActual"] = pagina;
             ViewData["TotalPaginas"] = totalPaginas == 0 ? 1 : totalPaginas;
 
@@ -148,8 +170,8 @@ namespace ReservasTemporales.Controllers
             CargarSelects(inmueble.IdPropietario, inmueble.IdTipoInmueble);
             return View(inmueble);
         }
-        // Eliminar
 
+        // Eliminar
         // GET: Inmuebles/Delete/5 (Muestra la vista de confirmación)
         [HttpGet]
         public IActionResult Delete(int id)

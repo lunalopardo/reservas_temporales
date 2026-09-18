@@ -7,7 +7,14 @@ public class RepositorioInmueble : RepositorioBase
 {
     public RepositorioInmueble(IConfiguration configuration) : base(configuration) { }
 
-    public IList<Inmueble> GetPaginado(string? buscar = null, int paginaNro = 1, int tamPagina = 10)
+    public IList<Inmueble> GetPaginado(
+        string? buscar = null, 
+        int? idPropietario = null, 
+        int? estadoDisponibilidad = null, 
+        bool masReservados = false, 
+        int? diasSinReserva = null, 
+        int paginaNro = 1, 
+        int tamPagina = 10)
     {
         IList<Inmueble> listado = new List<Inmueble>();
         int offset = Math.Max(0, (paginaNro - 1) * tamPagina);
@@ -27,12 +34,53 @@ public class RepositorioInmueble : RepositorioBase
                                        OR p.nombre LIKE @buscar 
                                        OR p.apellido LIKE @buscar 
                                        OR t.nombre LIKE @buscar)
-                ORDER BY i.id DESC
-                LIMIT @limit OFFSET @offset";
+                  AND (@idPropietario IS NULL OR i.id_propietario = @idPropietario)
+                  AND (@estadoDisponibilidad IS NULL OR (
+                        @estadoDisponibilidad = 1 AND NOT EXISTS (
+                            SELECT 1 FROM Reserva r 
+                            WHERE r.id_inmueble = i.id 
+                              AND r.activo = 1 
+                              AND CURRENT_DATE() BETWEEN r.fecha_desde AND r.fecha_hasta
+                        )
+                  ) OR (
+                        @estadoDisponibilidad = 0 AND EXISTS (
+                            SELECT 1 FROM Reserva r 
+                            WHERE r.id_inmueble = i.id 
+                              AND r.activo = 1 
+                              AND CURRENT_DATE() BETWEEN r.fecha_desde AND r.fecha_hasta
+                        )
+                  ))
+                    AND (@diasSinReserva IS NULL OR NOT EXISTS (
+                        SELECT 1 FROM Reserva r
+                        WHERE r.id_inmueble = i.id
+                        AND r.activo = 1
+                        AND r.fecha_desde >= DATE_SUB(CURRENT_DATE(), INTERVAL COALESCE(@diasSinReserva, 0) DAY)
+                    ))";
+
+            if (masReservados)
+            {
+                sql += @"
+                ORDER BY (
+                    SELECT COUNT(r.id) 
+                    FROM Reserva r 
+                    WHERE r.id_inmueble = i.id 
+                      AND r.activo = 1 
+                      AND r.fecha_desde >= DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)
+                ) DESC, i.id DESC";
+            }
+            else
+            {
+                sql += " ORDER BY i.id DESC";
+            }
+
+            sql += " LIMIT @limit OFFSET @offset";
 
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@buscar", paramBuscar);
+                command.Parameters.AddWithValue("@idPropietario", (object?)idPropietario ?? DBNull.Value);
+                command.Parameters.AddWithValue("@estadoDisponibilidad", (object?)estadoDisponibilidad ?? DBNull.Value);
+                command.Parameters.AddWithValue("@diasSinReserva", (object?)diasSinReserva ?? DBNull.Value);
                 command.Parameters.AddWithValue("@limit", tamPagina);
                 command.Parameters.AddWithValue("@offset", offset);
 
@@ -45,7 +93,6 @@ public class RepositorioInmueble : RepositorioBase
                     }
                 }
 
-                // Cargar reservas para evaluar la disponibilidad
                 if (listado.Any())
                 {
                     CargarReservasParaInmuebles(connection, listado);
@@ -55,7 +102,11 @@ public class RepositorioInmueble : RepositorioBase
         return listado;
     }
 
-    public int ObtenerCantidad(string? buscar = null)
+    public int ObtenerCantidad(
+        string? buscar = null, 
+        int? idPropietario = null, 
+        int? estadoDisponibilidad = null, 
+        int? diasSinReserva = null)
     {
         int total = 0;
         var paramBuscar = string.IsNullOrWhiteSpace(buscar) ? (object)DBNull.Value : $"%{buscar.Trim()}%";
@@ -71,11 +122,36 @@ public class RepositorioInmueble : RepositorioBase
                   AND (@buscar IS NULL OR i.direccion LIKE @buscar 
                                        OR p.nombre LIKE @buscar 
                                        OR p.apellido LIKE @buscar 
-                                       OR t.nombre LIKE @buscar)";
+                                       OR t.nombre LIKE @buscar)
+                  AND (@idPropietario IS NULL OR i.id_propietario = @idPropietario)
+                  AND (@estadoDisponibilidad IS NULL OR (
+                        @estadoDisponibilidad = 1 AND NOT EXISTS (
+                            SELECT 1 FROM Reserva r 
+                            WHERE r.id_inmueble = i.id 
+                              AND r.activo = 1 
+                              AND CURRENT_DATE() BETWEEN r.fecha_desde AND r.fecha_hasta
+                        )
+                  ) OR (
+                        @estadoDisponibilidad = 0 AND EXISTS (
+                            SELECT 1 FROM Reserva r 
+                            WHERE r.id_inmueble = i.id 
+                              AND r.activo = 1 
+                              AND CURRENT_DATE() BETWEEN r.fecha_desde AND r.fecha_hasta
+                        )
+                  ))
+                    AND (@diasSinReserva IS NULL OR NOT EXISTS (
+                        SELECT 1 FROM Reserva r
+                        WHERE r.id_inmueble = i.id
+                        AND r.activo = 1
+                        AND r.fecha_desde >= DATE_SUB(CURRENT_DATE(), INTERVAL COALESCE(@diasSinReserva, 0) DAY)
+                    ))";
 
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@buscar", paramBuscar);
+                command.Parameters.AddWithValue("@idPropietario", (object?)idPropietario ?? DBNull.Value);
+                command.Parameters.AddWithValue("@estadoDisponibilidad", (object?)estadoDisponibilidad ?? DBNull.Value);
+                command.Parameters.AddWithValue("@diasSinReserva", (object?)diasSinReserva ?? DBNull.Value);
 
                 connection.Open();
                 var result = command.ExecuteScalar();
@@ -310,7 +386,6 @@ public class RepositorioInmueble : RepositorioBase
         return listado;
     }
 
-    //BARRA DE BÚSQUEDA - HOME
     public IList<Inmueble> BuscarDisponiblesViewModel(int? idTipoInmueble, int? personas, DateTime? fechaInicio, DateTime? fechaFin)
     {
         var listado = new List<Inmueble>();
