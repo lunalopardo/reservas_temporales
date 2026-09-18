@@ -33,9 +33,20 @@ El sistema es una solución integral para la gestión de alquileres temporales..
 - Se puede **renovar** una reserva desde la vista de detalles de la misma, creando así una nueva reserva con el mismo inquilino e inmueble, distintas fechas y valor.
 - Se pueden ver todos los pagos realizados, incluso los "anulados". También se pueden reactivar los pagos desde la lista.
 
-### Falta implementar:
-- La lista de informes al final de la narrativa.
-- Mejoras de calidad de vida
+**Informes**
+- Listado de inmuebles filtrados por propietario y por disponibilidad.
+- Ordenar inmuebles por "más reservados en el último año" y filtrar inmuebles sin reservas en los últimos X días.
+- Consulta de reservas vigentes y filtrado de reservas a finalizar dentro de un plazo de días configurable.
+- Historial de pagos por reserva específica con opción de registrar un **Pago Rápido** directo desde el propio listado.
+
+---
+### 🔸Correcciones hechas a partir de la revisión cruzada (Gracias!)
+- Había implementado "Tipo de Inmueble como enum pero la narrativa pedía que sea una entidad.
+- Tenía selectores masivos en vez de hacer búsqueda en el servidor sin AJAX.
+- No había puesto un porcentaje de seña en inmuebles que también era pedido. Luego lo utilicé para calcular el monto diario de las reservas.
+
+También mencionaron otras funcionalidades que faltaban pero aún no habían sido implementadas. Estas devoluciones me sirvieron mucho a la hora de completar el proyecto y mejorar la estructura que ya tenía.
+
 ---
 
 ### Usuarios de prueba:
