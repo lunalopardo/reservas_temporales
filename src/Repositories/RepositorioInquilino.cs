@@ -19,7 +19,10 @@ public class RepositorioInquilino : RepositorioBase
             string sql = @"
                 SELECT * FROM Inquilino 
                 WHERE activo = 1 
-                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)
+                  AND (@buscar IS NULL OR nombre LIKE @buscar 
+                  OR apellido LIKE @buscar 
+                  OR CONCAT(Nombre, ' ', Apellido) LIKE @buscar
+                  OR dni LIKE @buscar)
                 ORDER BY id
                 LIMIT @limit OFFSET @offset";
 
@@ -54,7 +57,10 @@ public class RepositorioInquilino : RepositorioBase
                 SELECT COUNT(id) 
                 FROM Inquilino 
                 WHERE activo = 1 
-                  AND (@buscar IS NULL OR nombre LIKE @buscar OR apellido LIKE @buscar OR dni LIKE @buscar)";
+                  AND (@buscar IS NULL OR nombre LIKE @buscar 
+                  OR apellido LIKE @buscar
+                  OR CONCAT(Nombre, ' ', Apellido) LIKE @buscar
+                  OR dni LIKE @buscar)";
 
             using (MySqlCommand command = new MySqlCommand(sql, connection))
             {

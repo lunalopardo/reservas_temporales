@@ -52,7 +52,8 @@ public class RepositorioUsuario : RepositorioBase
                 SELECT * FROM usuario
                 WHERE (@buscar IS NULL OR nombre_usuario LIKE @buscar 
                                        OR nombre LIKE @buscar 
-                                       OR apellido LIKE @buscar 
+                                       OR apellido LIKE @buscar
+                                       OR CONCAT(Nombre, ' ', Apellido) LIKE @buscar 
                                        OR email LIKE @buscar)
                 ORDER BY id DESC
                 LIMIT @limit OFFSET @offset";
@@ -88,6 +89,7 @@ public class RepositorioUsuario : RepositorioBase
                 WHERE (@buscar IS NULL OR nombre_usuario LIKE @buscar 
                                        OR nombre LIKE @buscar 
                                        OR apellido LIKE @buscar 
+                                       OR CONCAT(Nombre, ' ', Apellido) LIKE @buscar
                                        OR email LIKE @buscar)";
 
             using (MySqlCommand command = new(sql, connection))
