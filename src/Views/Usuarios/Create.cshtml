@@ -1,0 +1,78 @@
+@model ReservasTemporales.Models.Usuario
+@using ReservasTemporales.Models
+
+@{
+    ViewData["Title"] = "Crear Nuevo Usuario";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/formularios.css" />
+}
+
+<div class="contenedor-principal" style="max-width: 600px; margin: 0 auto;">
+    <div class="encabezado-tabla" style="margin-bottom: 20px;">
+        <h2>Crear Nuevo Usuario</h2>
+        <a asp-action="Index" class="btn-limpiar" style="text-decoration: none; padding: 8px 16px;">
+            Volver
+        </a>
+    </div>
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="tarjeta-filtros">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Nombre" class="form-label font-weight-bold">Nombre</label>
+            <input asp-for="Nombre" class="form-control-filtro" required />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Apellido" class="form-label font-weight-bold">Apellido</label>
+            <input asp-for="Apellido" class="form-control-filtro" required />
+            <span asp-validation-for="Apellido" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="NombreUsuario" class="form-label font-weight-bold">Nombre de Usuario</label>
+            <input asp-for="NombreUsuario" class="form-control-filtro" required />
+            <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label font-weight-bold">Correo Electrónico</label>
+            <input asp-for="Email" type="email" class="form-control-filtro" required />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label font-weight-bold">Contraseña</label>
+            <input asp-for="Password" type="password" class="form-control-filtro" required />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Rol" class="form-label font-weight-bold">Rol de Usuario</label>
+            <select asp-for="Rol" class="form-control-filtro" asp-items="Html.GetEnumSelectList<enRoles>()">
+            </select>
+            <span asp-validation-for="Rol" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AvatarFile" class="form-label font-weight-bold">Foto de Perfil (Opcional)</label>
+            <input asp-for="AvatarFile" type="file" accept="image/*" class="form-control-filtro" />
+            <span asp-validation-for="AvatarFile" class="text-danger"></span>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <a asp-action="Index" class="btn-limpiar" style="text-decoration: none;">Cancelar</a>
+            <button type="submit" class="boton-nuevo" style="border: none; cursor: pointer;">Guardar Usuario</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

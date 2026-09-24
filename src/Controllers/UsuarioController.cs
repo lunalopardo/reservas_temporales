@@ -198,10 +198,19 @@ public class UsuariosController : Controller
 
     // GET: /Usuarios/Index
     [HttpGet]
-    [Authorize]
-    public IActionResult Index(string? buscar = null, int paginaNro = 1)
+    [Authorize(Roles = "Administrador")]
+    public IActionResult Index(string? buscar = null, int pagina = 1)
     {
-        var usuarios = _repositorioUsuario.GetPaginado(buscar, paginaNro);
+        int cantidadPorPagina = 10;
+
+        int totalRegistros = _repositorioUsuario.ObtenerCantidad(buscar);
+
+        var usuarios = _repositorioUsuario.GetPaginado(buscar, pagina, cantidadPorPagina);
+
+        ViewData["FiltroActual"] = buscar;
+        ViewData["PaginaActual"] = pagina;
+        ViewData["TotalPaginas"] = (int)Math.Ceiling((double)totalRegistros / cantidadPorPagina);
+
         return View(usuarios);
     }
 
@@ -216,6 +225,7 @@ public class UsuariosController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Edit(
         Usuario usuario,
         IFormFile? avatarFile,
@@ -279,23 +289,18 @@ public class UsuariosController : Controller
         return RedirectToAction("Index");
     }
 
-    // GET: /Usuarios/Register (o /Register)
-    [AllowAnonymous]
     [HttpGet]
-    public IActionResult Register()
+    [Authorize(Roles = "Administrador")]
+    public IActionResult Create()
     {
-        if (User.Identity is { IsAuthenticated: true })
-        {
-            return RedirectToAction("Index", "Home");
-        }
         return View();
     }
 
-    // POST: /Usuarios/Register
-    [AllowAnonymous]
+    //POST: /Usuarios/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(Usuario usuario)
+    [Authorize(Roles = "Administrador")]
+    public async Task<IActionResult> Create(Usuario usuario)
     {
         ModelState.Remove(nameof(Usuario.Avatar));
 
@@ -314,7 +319,7 @@ public class UsuariosController : Controller
             return View(usuario);
         }
 
-        // Procesar el avatar en caso de que hayan subido una foto durante el registro
+        // Procesar el avatar si subieron uno
         if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
         {
             string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "avatars");
@@ -331,23 +336,21 @@ public class UsuariosController : Controller
             usuario.Avatar = $"/uploads/avatars/{uniqueFileName}";
         }
 
-        // Hashear la contraseña con el IPasswordHasher inyectado
         if (usuario.Rol == 0)
         {
             usuario.Rol = (int)enRoles.Empleado;
         }
         usuario.Activo = true;
 
-        // 5. Intentar guardar en la base de datos
         int resultado = _repositorioUsuario.Create(usuario, _passwordHasher);
 
         if (resultado > 0)
         {
-            TempData["Mensaje"] = "¡Cuenta creada correctamente! Ya podés iniciar sesión.";
-            return RedirectToAction("Login");
+            TempData["Mensaje"] = "¡Usuario creado correctamente!";
+            return RedirectToAction(nameof(Index));
         }
 
-        ModelState.AddModelError(string.Empty, "Ocurrió un error al registrar el usuario.");
+        ModelState.AddModelError(string.Empty, "Ocurrió un error al crear el usuario.");
         return View(usuario);
     }
 }
