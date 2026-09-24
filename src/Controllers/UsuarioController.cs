@@ -206,7 +206,7 @@ public class UsuariosController : Controller
     }
 
     [HttpPost]
-    [Authorize(Policy = "Administrador")]
+    [Authorize(Roles = "Administrador")]
     public IActionResult Eliminar(int id)
     {
         _repositorioUsuario.AnularLogico(id);

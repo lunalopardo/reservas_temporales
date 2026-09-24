@@ -9,7 +9,8 @@
 
 <link rel="stylesheet" href="~/css/formularios.css" />
 <link rel="stylesheet" href="~/css/site.css" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
 <div class="contenedor-principal">
     <div class="encabezado-tabla">
@@ -19,7 +20,8 @@
 
     <form asp-action="Index" method="get" class="mb-4">
         <div class="d-flex gap-2 align-items-center">
-            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda" placeholder="Buscar por nombre, apellido o DNI..." />
+            <input type="text" name="buscar" value="@filtroActual" class="form-control campo-busqueda"
+                   placeholder="Buscar por nombre, apellido o DNI..." />
             
             <button type="submit" class="boton-buscar">
                 <span class="material-symbols-outlined">search</span>
@@ -64,15 +66,20 @@
                         <td>@propietario.Telefono</td>
                         <td>@propietario.Email</td>
                         <td class="columna-acciones">
-                            <a asp-action="Details" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Ver detalles">
+                            <a asp-action="Details" asp-route-id="@propietario.IdPropietario" class="boton-icono"
+                               title="Ver detalles">
                                 <span class="material-symbols-outlined">visibility</span>
                             </a>
                             <a asp-action="Edit" asp-route-id="@propietario.IdPropietario" class="boton-icono" title="Editar">
                                 <span class="material-symbols-outlined">edit</span>
                             </a>
-                            <a asp-action="Delete" asp-route-id="@propietario.IdPropietario" class="boton-icono boton-icono-eliminar" title="Borrar">
-                                <span class="material-symbols-outlined">delete</span>
-                            </a>
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <a asp-action="Delete" asp-route-id="@propietario.IdPropietario"
+                                   class="boton-icono boton-icono-eliminar" title="Borrar">
+                                    <span class="material-symbols-outlined">delete</span>}
+                                </a>
+                            }
                         </td>
                     </tr>
                 }
@@ -86,7 +93,8 @@
         <nav class="d-flex justify-content-center mt-4">
             <ul class="paginacion-custom">
                 <li class="pagina-item @(paginaActual <= 1 ? "deshabilitado" : "")">
-                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)" asp-route-buscar="@filtroActual">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual - 1)"
+                       asp-route-buscar="@filtroActual">
                         Anterior
                     </a>
                 </li>
@@ -101,7 +109,8 @@
                 }
 
                 <li class="pagina-item @(paginaActual >= totalPaginas ? "deshabilitado" : "")">
-                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)" asp-route-buscar="@filtroActual">
+                    <a class="pagina-enlace" asp-action="Index" asp-route-pagina="@(paginaActual + 1)"
+                       asp-route-buscar="@filtroActual">
                         Siguiente
                     </a>
                 </li>

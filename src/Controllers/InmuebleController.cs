@@ -174,6 +174,7 @@ namespace ReservasTemporales.Controllers
         // Eliminar
         // GET: Inmuebles/Delete/5 (Muestra la vista de confirmación)
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var inmueble = _repositorioInmueble.GetById(id);
@@ -185,6 +186,7 @@ namespace ReservasTemporales.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult DeleteConfirmed(int id)
         {
             _repositorioInmueble.DeleteLogico(id);

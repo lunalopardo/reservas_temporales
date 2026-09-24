@@ -70,10 +70,13 @@
                             <a asp-action="Edit" asp-route-id="@item.IdInquilino" class="boton-icono" title="Editar">
                                 <span class="material-symbols-outlined">edit</span>
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.IdInquilino" class="boton-icono boton-icono-eliminar"
-                               title="Borrar">
-                                <span class="material-symbols-outlined">delete</span>
-                            </a>
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <a asp-action="Delete" asp-route-id="@item.IdInquilino" class="boton-icono boton-icono-eliminar"
+                                   title="Borrar">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </a>
+                            }
                         </td>
                     </tr>
                 }

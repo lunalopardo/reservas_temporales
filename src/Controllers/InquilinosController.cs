@@ -100,6 +100,7 @@ namespace ReservasTemporales.Controllers
         }
 
         // GET: Inquilinos/Delete/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -111,8 +112,10 @@ namespace ReservasTemporales.Controllers
         }
 
         // POST: Inquilinos/Delete/5
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult DeleteConfirmed(int id)
         {
             repo.DeleteLogico(id);
