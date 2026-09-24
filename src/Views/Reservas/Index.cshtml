@@ -93,11 +93,9 @@
             {
                 foreach (var reserva in Model)
                 {
-                    // Lógica para determinar el Estado y la insignia (badge)
                     string estadoTexto;
                     string estadoClass;
 
-                    // Reemplaza 'FechaTerminacion' si tu propiedad se llama diferente (ej: FechaTerminacionTemprana)
                     if (reserva.FechaTerminacionAnticipada.HasValue)
                     {
                         estadoTexto = "Cancelada";

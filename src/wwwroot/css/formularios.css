@@ -344,3 +344,18 @@
     border-color: #e5e7eb;
     cursor: not-allowed;
 }
+
+/* Estilo para los días ocupados/reservados en Flatpickr */
+.flatpickr-day.ocupado,
+.flatpickr-day.flatpickr-disabled.ocupado {
+    background-color: #e74c3c !important;
+    color: #ffffff !important;
+    border-color: #c0392b !important;
+    opacity: 0.85 !important;
+    cursor: not-allowed !important;
+}
+
+.flatpickr-day.flatpickr-disabled.ocupado:hover {
+    background-color: #c0392b !important;
+    color: #ffffff !important;
+}
